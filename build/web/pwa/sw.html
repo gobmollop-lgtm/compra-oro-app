@@ -1,0 +1,24 @@
+const CACHE_NAME = 'compra-oro-v1';
+const urlsToCache = [
+    '/CompraOroApp/pwa/',
+    '/CompraOroApp/pwa/index.html',
+    '/CompraOroApp/pwa/app.js',
+    '/CompraOroApp/pwa/db.js'
+];
+
+self.addEventListener('install', (event) => {
+    event.waitUntil(
+        caches.open(CACHE_NAME)
+            .then((cache) => cache.addAll(urlsToCache))
+    );
+});
+
+self.addEventListener('fetch', (event) => {
+    // Solo cachear solicitudes de la PWA
+    if (event.request.url.includes('/CompraOroApp/pwa/')) {
+        event.respondWith(
+            caches.match(event.request)
+                .then((response) => response || fetch(event.request))
+        );
+    }
+});

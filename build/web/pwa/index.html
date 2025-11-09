@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compra de Oro - Offline</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        * { box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            padding: 20px; 
+            max-width: 600px; 
+            margin: 0 auto; 
+            background: #f8f9fa;
+        }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h1 { text-align: center; color: #007bff; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #495057; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 4px; }
+        button { 
+            background: #28a745; 
+            color: white; 
+            border: none; 
+            padding: 12px; 
+            width: 100%; 
+            border-radius: 4px; 
+            font-size: 16px; 
+            cursor: pointer; 
+        }
+        button:hover { background: #218838; }
+        .status { 
+            padding: 12px; 
+            border-radius: 4px; 
+            margin: 20px 0; 
+            text-align: center; 
+            font-weight: bold; 
+        }
+        .online { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .offline { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .clientes-list { max-height: 150px; overflow-y: auto; border: 1px solid #ced4da; border-radius: 4px; padding: 10px; }
+        .cliente-item { padding: 8px; border-bottom: 1px solid #eee; cursor: pointer; }
+        .cliente-item:hover { background: #e9ecef; }
+    </style>
+</head>
+<body>
+    <h1>Compra de Oro (Offline)</h1>
+    
+    <div id="status" class="status">Verificando conexión...</div>
+
+    <div class="card">
+        <div class="form-group">
+            <label>Cliente:</label>
+            <select id="clienteId" required>
+                <option value="">Cargando clientes...</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Peso (gramos):</label>
+            <input type="number" id="peso" step="0.001" placeholder="10.500" required>
+        </div>
+        <div class="form-group">
+            <label>Kilate:</label>
+            <input type="number" id="kilate" step="0.01" placeholder="120" required>
+        </div>
+        <div class="form-group">
+            <label>Punto:</label>
+            <input type="number" id="punto" step="0.01" placeholder="10" required>
+        </div>
+        <div class="form-group">
+            <label>Observaciones:</label>
+            <input type="text" id="observaciones" placeholder="Opcional">
+        </div>
+        <button onclick="guardarCompra()">Registrar Compra</button>
+    </div>
+
+    <div class="card">
+        <h3>Compras pendientes: <span id="pendientesCount">0</span></h3>
+        <div id="pendientesList"></div>
+    </div>
+
+    <script src="db.js"></script>
+    <script src="app.js"></script>
+    <script>
+        // Registrar Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('SW registrado'))
+                    .catch(err => console.log('Error en SW:', err));
+            });
+        }
+    </script>
+    <script>
+// Inicializar la PWA
+document.addEventListener('DOMContentLoaded', () => {
+    // El resto ya está en app.js
+});
+</script>
+</body>
+</html>

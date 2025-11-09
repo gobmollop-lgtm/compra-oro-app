@@ -1,0 +1,120 @@
+let db;
+
+const request = indexedDB.open('CompraOroDB', 2);
+
+request.onerror = () => console.error('Error en IndexedDB');
+request.onsuccess = () => {
+    db = request.result;
+    cargarClientes();
+    cargarComprasPendientes();
+    verificarConexion();
+};
+
+request.onupgradeneeded = (e) => {
+    const db = e.target.result;
+    
+    // Almacén para compras
+    if (!db.objectStoreNames.contains('compras')) {
+        const comprasStore = db.createObjectStore('compras', { keyPath: 'id', autoIncrement: true });
+        comprasStore.createIndex('synced', 'synced', { unique: false });
+    }
+    
+    // Almacén para clientes (cache)
+    if (!db.objectStoreNames.contains('clientes')) {
+        const clientesStore = db.createObjectStore('clientes', { keyPath: 'id' });
+    }
+};
+
+// Clientes
+function guardarClientesLocal(clientes) {
+    const tx = db.transaction(['clientes'], 'readwrite');
+    const store = tx.objectStore('clientes');
+    clientes.forEach(cliente => store.put(cliente));
+    tx.oncomplete = () => cargarClientes();
+}
+
+function cargarClientes() {
+    const tx = db.transaction(['clientes'], 'readonly');
+    const store = tx.objectStore('clientes');
+    const request = store.getAll();
+    
+    request.onsuccess = () => {
+        const select = document.getElementById('clienteId');
+        select.innerHTML = '<option value="">Selecciona un cliente</option>';
+        request.result.forEach(cliente => {
+            const option = document.createElement('option');
+            option.value = cliente.id;
+            option.textContent = cliente.nombre;
+            select.appendChild(option);
+        });
+        if (request.result.length === 0) {
+            select.innerHTML = '<option value="">No hay clientes. Conéctate a internet para cargar.</option>';
+        }
+    };
+}
+
+// Compras
+function guardarCompraLocal(compra) {
+    const tx = db.transaction(['compras'], 'readwrite');
+    const store = tx.objectStore('compras');
+    compra.synced = false;
+    compra.fecha = new Date().toISOString();
+    store.add(compra);
+    tx.oncomplete = () => {
+        console.log('Compra guardada localmente');
+        cargarComprasPendientes();
+    };
+}
+
+function cargarComprasPendientes() {
+    const tx = db.transaction(['compras'], 'readonly');
+    const store = tx.objectStore('compras');
+    const index = store.index('synced');
+    const range = IDBKeyRange.only(false);
+    const request = index.getAll(range);
+    
+    request.onsuccess = () => {
+        const pendientes = request.result;
+        document.getElementById('pendientesCount').textContent = pendientes.length;
+        const list = document.getElementById('pendientesList');
+        list.innerHTML = '';
+        pendientes.forEach(compra => {
+            const div = document.createElement('div');
+            div.style.padding = '8px';
+            div.style.borderBottom = '1px solid #eee';
+            div.innerHTML = `
+                <strong>Cliente:</strong> ${compra.clienteId} | 
+                <strong>Peso:</strong> ${compra.peso} | 
+                <strong>Total:</strong> ${(compra.peso * compra.kilate * compra.punto).toFixed(2)}
+                <br><small>${new Date(compra.fecha).toLocaleString()}</small>
+            `;
+            list.appendChild(div);
+        });
+    };
+}
+
+function marcarCompraComoSincronizada(id) {
+    const tx = db.transaction(['compras'], 'readwrite');
+    const store = tx.objectStore('compras');
+    const request = store.get(id);
+    
+    request.onsuccess = () => {
+        const compra = request.result;
+        compra.synced = true;
+        store.put(compra);
+        cargarComprasPendientes();
+    };
+}
+
+function obtenerComprasPendientes() {
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(['compras'], 'readonly');
+        const store = tx.objectStore('compras');
+        const index = store.index('synced');
+        const range = IDBKeyRange.only(false);
+        const request = index.getAll(range);
+        
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}

@@ -1,0 +1,166 @@
+let online = navigator.onLine;
+let clientesCargados = false;
+let IP_SERVIDOR = 'localhost'; // Valor por defecto
+
+// Cargar configuración desde el servidor
+function cargarConfiguracion() {
+    fetch('/CompraOroApp/api/config')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('No se pudo cargar la configuración');
+            }
+            return response.json();
+        })
+        .then(config => {
+            IP_SERVIDOR = config.ip_servidor || 'localhost';
+            console.log('IP del servidor configurada:', IP_SERVIDOR);
+            actualizarEstado();
+            if (online && !clientesCargados) {
+                cargarClientesOnline();
+            }
+        })
+        .catch(error => {
+            console.warn('Usando IP por defecto (localhost):', error);
+            IP_SERVIDOR = 'localhost';
+            actualizarEstado();
+        });
+}
+
+// URLs dinámicas
+function getBackendUrl() {
+    return `http://${IP_SERVIDOR}:8080/CompraOroApp/registrar-compra`;
+}
+
+function getClientesUrl() {
+    return `http://${IP_SERVIDOR}:8080/CompraOroApp/api/clientes`;
+}
+
+// Actualizar estado de conexión
+function actualizarEstado() {
+    const status = document.getElementById('status');
+    if (online) {
+        status.innerHTML = `🟢 Conectado a internet<br><small>IP del servidor: <strong>${IP_SERVIDOR}</strong></small>`;
+        status.className = 'status online';
+    } else {
+        status.innerHTML = `🔴 Modo offline - los datos se guardarán localmente<br><small>IP del servidor: <strong>${IP_SERVIDOR}</strong></small>`;
+        status.className = 'status offline';
+    }
+}
+
+// Detectar cambios de conexión
+window.addEventListener('online', () => {
+    online = true;
+    actualizarEstado();
+    setTimeout(sincronizarCompras, 1000);
+});
+
+window.addEventListener('offline', () => {
+    online = false;
+    actualizarEstado();
+});
+
+// Cargar clientes desde el servidor
+async function cargarClientesOnline() {
+    try {
+        const response = await fetch(getClientesUrl());
+        if (response.ok) {
+            const clientes = await response.json();
+            guardarClientesLocal(clientes);
+            clientesCargados = true;
+        }
+    } catch (error) {
+        console.error('Error al cargar clientes:', error);
+    }
+}
+
+// Guardar compra
+function guardarCompra() {
+    const clienteId = document.getElementById('clienteId').value;
+    const peso = document.getElementById('peso').value;
+    const kilate = document.getElementById('kilate').value;
+    const punto = document.getElementById('punto').value;
+    const observaciones = document.getElementById('observaciones').value;
+
+    if (!clienteId || !peso || !kilate || !punto) {
+        alert('Por favor completa todos los campos obligatorios');
+        return;
+    }
+
+    const compra = {
+        clienteId: parseInt(clienteId),
+        peso: parseFloat(peso),
+        kilate: parseFloat(kilate),
+        punto: parseFloat(punto),
+        observaciones: observaciones
+    };
+
+    if (online) {
+        enviarAlServidor(compra);
+    } else {
+        guardarCompraLocal(compra);
+        alert('✅ Guardado localmente. Se sincronizará al recuperar conexión.');
+        limpiarFormulario();
+    }
+}
+
+function limpiarFormulario() {
+    document.getElementById('peso').value = '';
+    document.getElementById('kilate').value = '';
+    document.getElementById('punto').value = '';
+    document.getElementById('observaciones').value = '';
+}
+
+// Enviar al servidor
+async function enviarAlServidor(compra) {
+    try {
+        const response = await fetch(getBackendUrl(), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(compra)
+        });
+        
+        if (response.ok) {
+            alert('✅ Compra registrada exitosamente');
+            limpiarFormulario();
+        } else {
+            const error = await response.text();
+            throw new Error(`Error del servidor: ${error}`);
+        }
+    } catch (error) {
+        console.error('Error al enviar al servidor:', error);
+        guardarCompraLocal(compra);
+        alert('⚠️ Error de conexión. Guardado localmente para sincronizar después.');
+    }
+}
+
+// Sincronizar compras pendientes
+async function sincronizarCompras() {
+    if (!online) return;
+    
+    try {
+        const comprasPendientes = await obtenerComprasPendientes();
+        for (const compra of comprasPendientes) {
+            try {
+                const response = await fetch(getBackendUrl(), {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(compra)
+                });
+                
+                if (response.ok) {
+                    marcarCompraComoSincronizada(compra.id);
+                } else {
+                    console.error('Error al sincronizar compra:', compra.id);
+                }
+            } catch (error) {
+                console.error('Error de red al sincronizar:', error);
+                break;
+            }
+        }
+    } catch (error) {
+        console.error('Error al obtener compras pendientes:', error);
+    }
+}
+
+// Inicializar
+cargarConfiguracion();
