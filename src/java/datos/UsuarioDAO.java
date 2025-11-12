@@ -41,7 +41,7 @@ public class UsuarioDAO {
     }
 
     public Usuario buscarPorId(int id) {
-        String sql = "SELECT id, nombre, usuario, rol FROM usuarios WHERE id = ?";
+        String sql = "SELECT id, nombre, usuario, rol, contrasena FROM usuarios WHERE id = ?";
         try (Connection con = ConexionDB.obtenerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, id);
@@ -52,6 +52,30 @@ public class UsuarioDAO {
                     u.setNombre(rs.getString("nombre"));
                     u.setUsuario(rs.getString("usuario"));
                     u.setRol(rs.getString("rol"));
+                    u.setContrasena(rs.getString("contrasena"));
+                    return u;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    // ✅ Nuevo método: buscar SOLO por nombre de usuario (para autenticación flexible)
+    public Usuario buscarPorUsuario(String usuario) {
+        String sql = "SELECT id, nombre, usuario, rol, contrasena FROM usuarios WHERE usuario = ?";
+        try (Connection con = ConexionDB.obtenerConexion();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, usuario);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Usuario u = new Usuario();
+                    u.setId(rs.getInt("id"));
+                    u.setNombre(rs.getString("nombre"));
+                    u.setUsuario(rs.getString("usuario"));
+                    u.setRol(rs.getString("rol"));
+                    u.setContrasena(rs.getString("contrasena"));
                     return u;
                 }
             }
@@ -85,40 +109,43 @@ public class UsuarioDAO {
             e.printStackTrace();
         }
     }
-    // Añade este método a tu UsuarioDAO.java (si no está)
-public Usuario buscarPorCredenciales(String usuario, String contrasena) {
-    String sql = "SELECT id, nombre, usuario, rol FROM usuarios WHERE usuario = ? AND contrasena = ?";
-    try (Connection con = ConexionDB.obtenerConexion();
-         PreparedStatement ps = con.prepareStatement(sql)) {
-        ps.setString(1, usuario);
-        ps.setString(2, contrasena);
-        try (ResultSet rs = ps.executeQuery()) {
-            if (rs.next()) {
-                Usuario u = new Usuario();
-                u.setId(rs.getInt("id"));
-                u.setNombre(rs.getString("nombre"));
-                u.setUsuario(rs.getString("usuario"));
-                u.setRol(rs.getString("rol"));
-                return u;
+
+    // Este método también funciona, pero se usa menos ahora
+    public Usuario buscarPorCredenciales(String usuario, String contrasena) {
+        String sql = "SELECT id, nombre, usuario, rol, contrasena FROM usuarios WHERE usuario = ? AND contrasena = ?";
+        try (Connection con = ConexionDB.obtenerConexion();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, usuario);
+            ps.setString(2, contrasena);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Usuario u = new Usuario();
+                    u.setId(rs.getInt("id"));
+                    u.setNombre(rs.getString("nombre"));
+                    u.setUsuario(rs.getString("usuario"));
+                    u.setRol(rs.getString("rol"));
+                    u.setContrasena(rs.getString("contrasena"));
+                    return u;
+                }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-    } catch (Exception e) {
-        e.printStackTrace();
+        return null;
     }
-    return null;
-}
-public void actualizarConContrasena(Usuario usuario) {
-    String sql = "UPDATE usuarios SET nombre = ?, usuario = ?, rol = ?, contrasena = ? WHERE id = ?";
-    try (Connection con = ConexionDB.obtenerConexion();
-         PreparedStatement ps = con.prepareStatement(sql)) {
-        ps.setString(1, usuario.getNombre());
-        ps.setString(2, usuario.getUsuario());
-        ps.setString(3, usuario.getRol());
-        ps.setString(4, usuario.getContrasena());
-        ps.setInt(5, usuario.getId());
-        ps.executeUpdate();
-    } catch (Exception e) {
-        e.printStackTrace();
+
+    public void actualizarConContrasena(Usuario usuario) {
+        String sql = "UPDATE usuarios SET nombre = ?, usuario = ?, rol = ?, contrasena = ? WHERE id = ?";
+        try (Connection con = ConexionDB.obtenerConexion();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, usuario.getNombre());
+            ps.setString(2, usuario.getUsuario());
+            ps.setString(3, usuario.getRol());
+            ps.setString(4, usuario.getContrasena());
+            ps.setInt(5, usuario.getId());
+            ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
-}
 }

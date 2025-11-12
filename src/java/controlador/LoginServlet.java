@@ -18,14 +18,11 @@ public class LoginServlet extends HttpServlet {
         Usuario u = servicio.autenticar(usuario, contrasena);
 
         if (u != null) {
-            
             HttpSession sesion = request.getSession();
             sesion.setAttribute("usuarioId", u.getId());
             sesion.setAttribute("nombreUsuario", u.getNombre());
             sesion.setAttribute("rol", u.getRol());
-            // En LoginServlet.java, dentro del if (u != null)
-            response.sendRedirect("menu-principal.jsp"); // ← cambia esto
-            //response.sendRedirect("registrar-compra.jsp");
+            response.sendRedirect("menu-principal.jsp");
         } else {
             response.sendRedirect("login.jsp?error=1");
         }
