@@ -7,37 +7,37 @@ public class ConexionDB {
     
     public static Connection obtenerConexion() {
         try {
-            // Usa variables de entorno de Railway
+            // Detectar si estamos en Railway (las variables deben estar definidas)
             String host = System.getenv("MYSQLHOST");
             String port = System.getenv("MYSQLPORT");
-            String db   = System.getenv("MYSQLDATABASE");
-            if (db == null || db.isEmpty()) {
-                db = System.getenv("MYSQL_DATABASE"); // Soporta ambas variantes
-            }
+            String db = System.getenv("MYSQLDATABASE");
             String user = System.getenv("MYSQLUSER");
             String pass = System.getenv("MYSQLPASSWORD");
 
-            // Si no hay variables (modo local), usa valores locales
-            if (host == null || host.isEmpty()) {
+            // Si alguna variable crítica falta, usar modo local
+            boolean esRailway = (host != null && !host.isEmpty() &&
+                                db != null && !db.isEmpty() &&
+                                user != null && !user.isEmpty());
+
+            if (!esRailway) {
+                // Modo local
                 host = "localhost";
                 port = "3306";
-                db   = "compra_oro";
+                db = "compra_oro";
                 user = "root";
-                pass = "123"; // ← tu contraseña local
+                pass = "123";
             }
 
-            // Construye la URL para MySQL
             String baseUrl = "jdbc:mysql://" + host + ":" + port + "/" + db;
-
             String url;
-            if (host != null && !host.isEmpty() && !host.equalsIgnoreCase("localhost")) {
-                // Modo nube (Railway) → SSL estricto
+            if (esRailway) {
+                // Modo Railway: con SSL estricto
                 url = baseUrl +
                       "?sslMode=VERIFY_IDENTITY" +
                       "&enabledTLSProtocols=TLSv1.2,TLSv1.3" +
                       "&serverTimezone=UTC";
             } else {
-                // Modo local → sin SSL (o con SSL si lo tienes)
+                // Modo local: sin SSL
                 url = baseUrl +
                       "?allowPublicKeyRetrieval=true" +
                       "&useSSL=false" +
