@@ -5,7 +5,7 @@ import java.sql.DriverManager;
 
 public class ConexionDB {
 
-    public static Connection obtenerConexion() {
+    public static Connection obtenerConexion() { //Rehabilitando el codigo original
         try {
             // Detectar si estamos en Railway (las variables deben estar definidas)
             String host = System.getenv("MYSQLHOST");
