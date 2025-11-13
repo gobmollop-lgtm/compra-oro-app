@@ -39,4 +39,7 @@ public class UsuarioServicio {
     public void actualizarConContrasena(Usuario usuario) {
         usuarioDAO.actualizarConContrasena(usuario);
     }
+    public List<Usuario> obtenerTodos() {
+        return usuarioDAO.listarTodos();
+    }
 }

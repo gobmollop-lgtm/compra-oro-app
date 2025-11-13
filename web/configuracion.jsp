@@ -1,10 +1,23 @@
 <%@ page contentType="text/html" pageEncoding="UTF-8"%>
-<%@ page import="modelo.Configuracion, logica.ConfiguracionServicio" %>
+<%@ page import="modelo.Configuracion, logica.ConfiguracionServicio, java.util.Map, logica.PermisoServicio" %>
 <%
-if (session.getAttribute("usuarioId") == null || !"admin".equals(session.getAttribute("rol"))) {
+// === PROTECCIÓN DINÁMICA DE PERMISOS ===
+if (session.getAttribute("usuarioId") == null) {
     response.sendRedirect("login.jsp");
     return;
 }
+
+int usuarioId = Integer.parseInt(session.getAttribute("usuarioId").toString());
+PermisoServicio permisoServicio = new PermisoServicio();
+Map<String, Boolean> permisos = permisoServicio.obtenerPermisosPorUsuario(usuarioId);
+
+// Solo permite acceso si tiene permiso para "configuracion"
+if (!permisos.getOrDefault("configuracion", false)) {
+    response.sendRedirect("menu-principal.jsp");
+    return;
+}
+// ======================================
+
 ConfiguracionServicio configServicio = new ConfiguracionServicio();
 Configuracion configuracionMoneda = configServicio.obtenerConfiguracion();
 if (configuracionMoneda == null) {
@@ -27,7 +40,9 @@ if (configuracionMoneda == null) {
         <div class="card-header bg-warning text-dark">
             <h4 class="d-inline"><i class="fas fa-cog me-2"></i>Configuración del Sistema</h4>
             <div class="float-end">
-                <small class="me-2">👤 <%= session.getAttribute("nombreUsuario") %> (Administrador)</small>
+                <small class="me-2">👤 <%= session.getAttribute("nombreUsuario") %> 
+                    (<%= permisos.getOrDefault("asignacion_permisos", false) ? "Administrador" : "Usuario" %>)
+                </small>
                 <a href="menu-principal.jsp" class="btn btn-sm btn-outline-dark">Menú Principal</a>
             </div>
         </div>
@@ -68,23 +83,6 @@ if (configuracionMoneda == null) {
                 <div class="mb-4">
                     <label class="form-label">Símbolo de Moneda</label>
                     <input type="text" name="monedaSimbolo" class="form-control" value="<%= configuracionMoneda.getMonedaSimbolo() %>" maxlength="10" placeholder="$, Q, €, Bs, etc." required>
-                </div>
-
-                <!-- Permisos del Comprador -->
-                <h5><i class="fas fa-user-lock me-2"></i>Permisos del Rol "Comprador"</h5>
-                <div class="mb-4">
-                    <div class="form-check mb-2">
-                        <input class="form-check-input" type="checkbox" name="compradorVeHistorialCompleto" id="chkHistorial" <%= configuracionMoneda.isCompradorVeHistorialCompleto() ? "checked" : "" %>>
-                        <label class="form-check-label" for="chkHistorial">
-                            El comprador puede ver el historial completo de compras
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" name="compradorPuedeRegistrarCliente" id="chkCliente" <%= configuracionMoneda.isCompradorPuedeRegistrarCliente() ? "checked" : "" %>>
-                        <label class="form-check-label" for="chkCliente">
-                            El comprador puede registrar nuevos clientes
-                        </label>
-                    </div>
                 </div>
 
                 <!-- Configuración de Red (NUEVO) -->

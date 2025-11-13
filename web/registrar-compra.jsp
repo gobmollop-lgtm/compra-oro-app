@@ -1,15 +1,25 @@
 <%@ page contentType="text/html" pageEncoding="UTF-8"%>
-<%@ page import="java.util.List, modelo.Cliente, logica.ClienteServicio, modelo.Configuracion, logica.ConfiguracionServicio" %>
+<%@ page import="java.util.Map, logica.PermisoServicio, java.util.List, modelo.Cliente, logica.ClienteServicio, modelo.Configuracion, logica.ConfiguracionServicio" %>
 <%
+// === PROTECCIÓN DINÁMICA: Registrar Compra ===
 if (session.getAttribute("usuarioId") == null) {
     response.sendRedirect("login.jsp");
     return;
 }
+int usuarioId = Integer.parseInt(session.getAttribute("usuarioId").toString());
+PermisoServicio permisoServicio = new PermisoServicio();
+Map<String, Boolean> permisos = permisoServicio.obtenerPermisosPorUsuario(usuarioId);
+
+if (!permisos.getOrDefault("compra", false)) {
+    response.sendRedirect("menu-principal.jsp");
+    return;
+}
+// ==============================================
+
 String rol = (String) session.getAttribute("rol");
 ClienteServicio clienteServicio = new ClienteServicio();
 List<Cliente> clientes = clienteServicio.obtenerTodos();
 
-// Nombre ÚNICO para evitar "Duplicate local variable"
 ConfiguracionServicio servicioMoneda = new ConfiguracionServicio();
 Configuracion datosMoneda = servicioMoneda.obtenerConfiguracion();
 String simboloMoneda = (datosMoneda != null && datosMoneda.getMonedaSimbolo() != null) 
@@ -44,10 +54,10 @@ String simboloMoneda = (datosMoneda != null && datosMoneda.getMonedaSimbolo() !=
             </div>
             <% } %>
 
-            <form action="registrar-compra" method="post">
+            <form action="registrar-compra" method="post">  <!-- ✅ CORREGIDO AQUÍ -->
                 <div class="mb-3">
                     <label class="form-label fw-bold">Cliente:</label>
-                    <select name="clienteId" class="form-select" required>
+                    <select name="clienteId" class="form-control" required>
                         <option value="">-- Elija un cliente --</option>
                         <% for (Cliente c : clientes) { %>
                         <option value="<%= c.getId() %>"><%= c.getNombre() %></option>
@@ -56,7 +66,8 @@ String simboloMoneda = (datosMoneda != null && datosMoneda.getMonedaSimbolo() !=
                 </div>
 
                 <%
-                    if ("admin".equals(rol)) {
+                    // Mostrar modal de nuevo cliente si tiene permiso para clientes
+                    if ("admin".equals(rol) || permisos.getOrDefault("clientes", false)) {
                 %>
                 <div class="text-end mb-2">
                     <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#nuevoClienteModal">

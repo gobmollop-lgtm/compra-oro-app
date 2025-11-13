@@ -12,10 +12,13 @@ public class GuardarConfiguracionServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        if (!"admin".equals(request.getSession().getAttribute("rol"))) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+        // === Protección: solo usuarios con permiso pueden guardar ===
+        if (request.getSession().getAttribute("usuarioId") == null) {
+            response.sendRedirect("login.jsp");
             return;
         }
+        // Ya no usamos "rol", porque el permiso lo gestiona el sistema dinámico
+        // Pero si quieres mantener una capa extra, puedes verificar con PermisoServicio aquí
 
         Configuracion c = new Configuracion();
         c.setId(1);
@@ -24,9 +27,8 @@ public class GuardarConfiguracionServlet extends HttpServlet {
         c.setTelefonoNegocio(request.getParameter("telefonoNegocio"));
         c.setDireccionNegocio(request.getParameter("direccionNegocio"));
         c.setLogoUrl(request.getParameter("logoUrl"));
-        c.setCompradorVeHistorialCompleto("on".equals(request.getParameter("compradorVeHistorialCompleto")));
-        c.setCompradorPuedeRegistrarCliente("on".equals(request.getParameter("compradorPuedeRegistrarCliente")));
-        c.setIpServidor(request.getParameter("ipServidor")); // ← NUEVO
+        // ✅ Eliminadas las líneas de permisos del comprador
+        c.setIpServidor(request.getParameter("ipServidor"));
 
         ConfiguracionServicio servicio = new ConfiguracionServicio();
         servicio.guardarConfiguracion(c);

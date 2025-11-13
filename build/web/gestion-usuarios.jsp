@@ -1,10 +1,23 @@
 <%@ page contentType="text/html" pageEncoding="UTF-8"%>
-<%@ page import="java.util.List, modelo.Usuario, logica.UsuarioServicio" %>
+<%@ page import="java.util.List, modelo.Usuario, logica.UsuarioServicio, java.util.Map, logica.PermisoServicio" %>
 <%
-if (session.getAttribute("usuarioId") == null || !"admin".equals(session.getAttribute("rol"))) {
+// === PROTECCIÓN DINÁMICA DE PERMISOS ===
+if (session.getAttribute("usuarioId") == null) {
     response.sendRedirect("login.jsp");
     return;
 }
+
+int usuarioId = Integer.parseInt(session.getAttribute("usuarioId").toString());
+PermisoServicio permisoServicio = new PermisoServicio();
+Map<String, Boolean> permisos = permisoServicio.obtenerPermisosPorUsuario(usuarioId);
+
+// Solo permite acceso si tiene permiso para "usuarios"
+if (!permisos.getOrDefault("usuarios", false)) {
+    response.sendRedirect("menu-principal.jsp");
+    return;
+}
+// ======================================
+
 UsuarioServicio servicio = new UsuarioServicio();
 List<Usuario> usuarios = servicio.listarTodos();
 Integer usuarioIdSesion = (Integer) session.getAttribute("usuarioId");
@@ -24,7 +37,9 @@ Integer usuarioIdSesion = (Integer) session.getAttribute("usuarioId");
         <div class="card-header bg-warning text-dark">
             <h4 class="d-inline"><i class="fas fa-users-cog me-2"></i>Gestión de Usuarios</h4>
             <div class="float-end">
-                <small class="me-2">👤 <%= session.getAttribute("nombreUsuario") %> (Administrador)</small>
+                <small class="me-2">👤 <%= session.getAttribute("nombreUsuario") %> 
+                    (<%= permisos.getOrDefault("asignacion_permisos", false) ? "Administrador" : "Gestor" %>)
+                </small>
                 <a href="menu-principal.jsp" class="btn btn-sm btn-outline-dark">Menú Principal</a>
             </div>
         </div>
@@ -124,45 +139,45 @@ Integer usuarioIdSesion = (Integer) session.getAttribute("usuarioId");
                             </td>
                         </tr>
 
-                        <!-- Modal de Edición (ACTUALIZADO CON CONTRASEÑA) -->
-<div class="modal fade" id="editarModal<%= u.getId() %>" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Editar Usuario: <%= u.getUsuario() %></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form action="editar-usuario" method="post">
-                <div class="modal-body">
-                    <input type="hidden" name="id" value="<%= u.getId() %>">
-                    <div class="mb-3">
-                        <label>Nombre Completo</label>
-                        <input type="text" name="nombre" class="form-control" value="<%= u.getNombre() %>" required>
-                    </div>
-                    <div class="mb-3">
-                        <label>Usuario</label>
-                        <input type="text" name="usuario" class="form-control" value="<%= u.getUsuario() %>" required>
-                    </div>
-                    <div class="mb-3">
-                        <label>Rol</label>
-                        <select name="rol" class="form-control" required>
-                            <option value="admin" <%= "admin".equals(u.getRol()) ? "selected" : "" %>>Administrador</option>
-                            <option value="comprador" <%= "comprador".equals(u.getRol()) ? "selected" : "" %>>Comprador</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label>Nueva Contraseña (opcional)</label>
-                        <input type="password" name="contrasena" class="form-control" placeholder="Dejar vacío para no cambiar">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+                        <!-- Modal de Edición -->
+                        <div class="modal fade" id="editarModal<%= u.getId() %>" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Editar Usuario: <%= u.getUsuario() %></h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <form action="editar-usuario" method="post">
+                                        <div class="modal-body">
+                                            <input type="hidden" name="id" value="<%= u.getId() %>">
+                                            <div class="mb-3">
+                                                <label>Nombre Completo</label>
+                                                <input type="text" name="nombre" class="form-control" value="<%= u.getNombre() %>" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label>Usuario</label>
+                                                <input type="text" name="usuario" class="form-control" value="<%= u.getUsuario() %>" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label>Rol</label>
+                                                <select name="rol" class="form-control" required>
+                                                    <option value="admin" <%= "admin".equals(u.getRol()) ? "selected" : "" %>>Administrador</option>
+                                                    <option value="comprador" <%= "comprador".equals(u.getRol()) ? "selected" : "" %>>Comprador</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label>Nueva Contraseña (opcional)</label>
+                                                <input type="password" name="contrasena" class="form-control" placeholder="Dejar vacío para no cambiar">
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
                         <% } %>
                     </tbody>
                 </table>

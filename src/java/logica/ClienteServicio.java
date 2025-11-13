@@ -14,4 +14,16 @@ public class ClienteServicio {
     public List<Cliente> obtenerTodos() {
         return clienteDAO.listarTodos();
     }
+
+    public Cliente obtenerPorId(int id) {
+        return clienteDAO.obtenerPorId(id);
+    }
+
+    public void actualizar(Cliente cliente) {
+        clienteDAO.actualizar(cliente);
+    }
+
+    public void eliminar(int id) {
+        clienteDAO.eliminar(id);
+    }
 }

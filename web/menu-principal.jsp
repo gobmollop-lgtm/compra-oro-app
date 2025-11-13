@@ -1,11 +1,17 @@
 <%@ page contentType="text/html" pageEncoding="UTF-8"%>
+<%@ page import="java.util.Map, logica.PermisoServicio" %>
 <%
 if (session.getAttribute("usuarioId") == null) {
     response.sendRedirect("login.jsp");
     return;
 }
-String rol = (String) session.getAttribute("rol");
+
+int usuarioId = Integer.parseInt(session.getAttribute("usuarioId").toString());
+PermisoServicio permisoServicio = new PermisoServicio();
+Map<String, Boolean> permisos = permisoServicio.obtenerPermisosPorUsuario(usuarioId);
+
 String nombreUsuario = (String) session.getAttribute("nombreUsuario");
+String rol = (String) session.getAttribute("rol");
 %>
 <!DOCTYPE html>
 <html lang="es">
@@ -16,20 +22,13 @@ String nombreUsuario = (String) session.getAttribute("nombreUsuario");
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .menu-card {
-            transition: transform 0.2s;
-        }
-        .menu-card:hover {
-            transform: translateY(-5px);
-        }
-        .role-badge {
-            font-size: 0.9em;
-        }
+        .menu-card { transition: transform 0.2s; }
+        .menu-card:hover { transform: translateY(-5px); }
+        .role-badge { font-size: 0.9em; }
     </style>
 </head>
 <body class="bg-light">
 <div class="container mt-4">
-    <!-- Encabezado -->
     <div class="card mb-4 shadow">
         <div class="card-header bg-primary text-white">
             <div class="d-flex justify-content-between align-items-center">
@@ -44,8 +43,9 @@ String nombreUsuario = (String) session.getAttribute("nombreUsuario");
         </div>
         <div class="card-body">
             <div class="row g-4">
-                <!-- Opción: Registrar Compra -->
+                <!-- Registrar Compra -->
                 <div class="col-md-6 col-lg-4">
+                    <% if (permisos.getOrDefault("compra", false)) { %>
                     <a href="registrar-compra.jsp" class="text-decoration-none">
                         <div class="card menu-card h-100 border-primary">
                             <div class="card-body text-center">
@@ -57,10 +57,22 @@ String nombreUsuario = (String) session.getAttribute("nombreUsuario");
                             </div>
                         </div>
                     </a>
+                    <% } else { %>
+                    <div class="card menu-card h-100 border-secondary opacity-50">
+                        <div class="card-body text-center">
+                            <div class="bg-secondary text-white rounded-circle p-3 d-inline-block mb-3">
+                                <i class="fas fa-shopping-cart fa-2x"></i>
+                            </div>
+                            <h5 class="card-title">Registrar Compra</h5>
+                            <p class="card-text text-muted">Sin permiso</p>
+                        </div>
+                    </div>
+                    <% } %>
                 </div>
 
-                <!-- Opción: Historial de Compras -->
+                <!-- Historial de Compras -->
                 <div class="col-md-6 col-lg-4">
+                    <% if (permisos.getOrDefault("historial", false)) { %>
                     <a href="lista-compras.jsp" class="text-decoration-none">
                         <div class="card menu-card h-100 border-success">
                             <div class="card-body text-center">
@@ -72,35 +84,23 @@ String nombreUsuario = (String) session.getAttribute("nombreUsuario");
                             </div>
                         </div>
                     </a>
-                </div>
-
-                <!-- Opción: Gestión de Usuarios (solo admin) -->
-                <%
-                    if ("admin".equals(rol)) {
-                %>
-                <div class="col-md-6 col-lg-4">
-                    <a href="gestion-usuarios.jsp" class="text-decoration-none">
-                        <div class="card menu-card h-100 border-warning">
-                            <div class="card-body text-center">
-                                <div class="bg-warning text-dark rounded-circle p-3 d-inline-block mb-3">
-                                    <i class="fas fa-users fa-2x"></i>
-                                </div>
-                                <h5 class="card-title">Gestión de Usuarios</h5>
-                                <p class="card-text text-muted">Administra usuarios del sistema</p>
+                    <% } else { %>
+                    <div class="card menu-card h-100 border-secondary opacity-50">
+                        <div class="card-body text-center">
+                            <div class="bg-secondary text-white rounded-circle p-3 d-inline-block mb-3">
+                                <i class="fas fa-list-alt fa-2x"></i>
                             </div>
+                            <h5 class="card-title">Historial de Compras</h5>
+                            <p class="card-text text-muted">Sin permiso</p>
                         </div>
-                    </a>
+                    </div>
+                    <% } %>
                 </div>
-                <%
-                    }
-                %>
 
-                <!-- Opción: Clientes (solo admin) -->
-                <%
-                    if ("admin".equals(rol)) {
-                %>
+                <!-- Clientes -->
                 <div class="col-md-6 col-lg-4">
-                    <a href="lista-clientes.jsp" class="text-decoration-none">
+                    <% if (permisos.getOrDefault("clientes", false)) { %>
+                    <a href="clientes.jsp" class="text-decoration-none">
                         <div class="card menu-card h-100 border-info">
                             <div class="card-body text-center">
                                 <div class="bg-info text-white rounded-circle p-3 d-inline-block mb-3">
@@ -111,20 +111,53 @@ String nombreUsuario = (String) session.getAttribute("nombreUsuario");
                             </div>
                         </div>
                     </a>
+                    <% } else { %>
+                    <div class="card menu-card h-100 border-secondary opacity-50">
+                        <div class="card-body text-center">
+                            <div class="bg-secondary text-white rounded-circle p-3 d-inline-block mb-3">
+                                <i class="fas fa-user-friends fa-2x"></i>
+                            </div>
+                            <h5 class="card-title">Clientes</h5>
+                            <p class="card-text text-muted">Sin permiso</p>
+                        </div>
+                    </div>
+                    <% } %>
                 </div>
-                <%
-                    }
-                %>
 
-                <!-- Opción: Configuración (solo admin) -->
-                <%
-                    if ("admin".equals(rol)) {
-                %>
+                <!-- Gestión de Usuarios -->
                 <div class="col-md-6 col-lg-4">
-                    <a href="configuracion.jsp" class="text-decoration-none">
+                    <% if (permisos.getOrDefault("usuarios", false)) { %>
+                    <a href="gestion-usuarios.jsp" class="text-decoration-none">
                         <div class="card menu-card h-100 border-warning">
                             <div class="card-body text-center">
                                 <div class="bg-warning text-dark rounded-circle p-3 d-inline-block mb-3">
+                                    <i class="fas fa-users-gear fa-2x"></i>
+                                </div>
+                                <h5 class="card-title">Gestión de Usuarios</h5>
+                                <p class="card-text text-muted">Administra usuarios del sistema</p>
+                            </div>
+                        </div>
+                    </a>
+                    <% } else { %>
+                    <div class="card menu-card h-100 border-secondary opacity-50">
+                        <div class="card-body text-center">
+                            <div class="bg-secondary text-white rounded-circle p-3 d-inline-block mb-3">
+                                <i class="fas fa-users-gear fa-2x"></i>
+                            </div>
+                            <h5 class="card-title">Gestión de Usuarios</h5>
+                            <p class="card-text text-muted">Sin permiso</p>
+                        </div>
+                    </div>
+                    <% } %>
+                </div>
+
+                <!-- Configuración -->
+                <div class="col-md-6 col-lg-4">
+                    <% if (permisos.getOrDefault("configuracion", false)) { %>
+                    <a href="configuracion.jsp" class="text-decoration-none">
+                        <div class="card menu-card h-100 border-secondary">
+                            <div class="card-body text-center">
+                                <div class="bg-secondary text-white rounded-circle p-3 d-inline-block mb-3">
                                     <i class="fas fa-cog fa-2x"></i>
                                 </div>
                                 <h5 class="card-title">Configuración</h5>
@@ -132,10 +165,45 @@ String nombreUsuario = (String) session.getAttribute("nombreUsuario");
                             </div>
                         </div>
                     </a>
+                    <% } else { %>
+                    <div class="card menu-card h-100 border-secondary opacity-50">
+                        <div class="card-body text-center">
+                            <div class="bg-secondary text-white rounded-circle p-3 d-inline-block mb-3">
+                                <i class="fas fa-cog fa-2x"></i>
+                            </div>
+                            <h5 class="card-title">Configuración</h5>
+                            <p class="card-text text-muted">Sin permiso</p>
+                        </div>
+                    </div>
+                    <% } %>
                 </div>
-                <%
-                    }
-                %>
+
+                <!-- Asignación de Permisos -->
+                <div class="col-md-6 col-lg-4">
+                    <% if (permisos.getOrDefault("asignacion_permisos", false)) { %>
+                    <a href="asignacion-permisos.jsp" class="text-decoration-none">
+                        <div class="card menu-card h-100 border-dark">
+                            <div class="card-body text-center">
+                                <div class="bg-dark text-white rounded-circle p-3 d-inline-block mb-3">
+                                    <i class="fas fa-shield-alt fa-2x"></i>
+                                </div>
+                                <h5 class="card-title">Asignación de Permisos</h5>
+                                <p class="card-text text-muted">Gestiona acceso a módulos</p>
+                            </div>
+                        </div>
+                    </a>
+                    <% } else { %>
+                    <div class="card menu-card h-100 border-secondary opacity-50">
+                        <div class="card-body text-center">
+                            <div class="bg-secondary text-white rounded-circle p-3 d-inline-block mb-3">
+                                <i class="fas fa-shield-alt fa-2x"></i>
+                            </div>
+                            <h5 class="card-title">Asignación de Permisos</h5>
+                            <p class="card-text text-muted">Sin permiso</p>
+                        </div>
+                    </div>
+                    <% } %>
+                </div>
             </div>
         </div>
         <div class="card-footer text-center">

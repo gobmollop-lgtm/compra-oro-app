@@ -5,6 +5,7 @@ import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
 import logica.UsuarioServicio;
+import logica.PermisoServicio;
 import modelo.Usuario;
 
 @WebServlet("/login")
@@ -22,6 +23,16 @@ public class LoginServlet extends HttpServlet {
             sesion.setAttribute("usuarioId", u.getId());
             sesion.setAttribute("nombreUsuario", u.getNombre());
             sesion.setAttribute("rol", u.getRol());
+
+            // === ASIGNAR PERMISOS POR DEFECTO ===
+            PermisoServicio permisoServicio = new PermisoServicio();
+            if ("admin".equals(u.getRol())) {
+                // Admin: todos los permisos activados
+                permisoServicio.asignarTodosPermisos(u.getId());
+            }
+            // Comprador: sin permisos (se asignan manualmente desde la interfaz)
+            // ===================================
+
             response.sendRedirect("menu-principal.jsp");
         } else {
             response.sendRedirect("login.jsp?error=1");

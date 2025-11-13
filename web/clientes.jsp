@@ -1,14 +1,23 @@
 <%@ page contentType="text/html" pageEncoding="UTF-8"%>
-<%@ page import="java.util.List, modelo.Cliente, logica.ClienteServicio" %>
+<%@ page import="java.util.Map, logica.PermisoServicio, java.util.List, modelo.Cliente, logica.ClienteServicio" %>
 <%
-if (session.getAttribute("usuarioId") == null || !"admin".equals(session.getAttribute("rol"))) {
+// === PROTECCIÓN DE PERMISOS ===
+if (session.getAttribute("usuarioId") == null) {
     response.sendRedirect("login.jsp");
     return;
 }
+int usuarioId = Integer.parseInt(session.getAttribute("usuarioId").toString());
+PermisoServicio permisoServicio = new PermisoServicio();
+Map<String, Boolean> permisos = permisoServicio.obtenerPermisosPorUsuario(usuarioId);
+
+if (!permisos.getOrDefault("clientes", false)) {
+    response.sendRedirect("menu-principal.jsp");
+    return;
+}
+// =============================
 
 ClienteServicio clienteServicio = new ClienteServicio();
 List<Cliente> clientes = clienteServicio.obtenerTodos();
-
 String msg = request.getParameter("msg");
 %>
 <!DOCTYPE html>
@@ -29,7 +38,6 @@ String msg = request.getParameter("msg");
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h3>Lista de Clientes</h3>
         <div>
-            <!-- Botón para abrir el modal de nuevo cliente -->
             <button type="button" class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#nuevoClienteModal">
                 + Agregar Nuevo Cliente
             </button>

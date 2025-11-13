@@ -38,6 +38,7 @@ public class UsuarioDAO {
             e.printStackTrace();
         }
         return lista;
+       
     }
 
     public Usuario buscarPorId(int id) {

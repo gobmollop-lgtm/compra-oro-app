@@ -1,15 +1,24 @@
 <%@ page contentType="text/html" pageEncoding="UTF-8"%>
-<%@ page import="java.util.List, modelo.Compra, logica.CompraServicio, modelo.Configuracion, logica.ConfiguracionServicio" %>
+<%@ page import="java.util.List, modelo.Compra, logica.CompraServicio, modelo.Configuracion, logica.ConfiguracionServicio, java.util.Map, logica.PermisoServicio" %>
 <%
+// === PROTECCIÓN DINÁMICA: Historial ===
 if (session.getAttribute("usuarioId") == null) {
     response.sendRedirect("login.jsp");
     return;
 }
-String rol = (String) session.getAttribute("rol");
+int usuarioId = Integer.parseInt(session.getAttribute("usuarioId").toString());
+PermisoServicio permisoServicio = new PermisoServicio();
+Map<String, Boolean> permisos = permisoServicio.obtenerPermisosPorUsuario(usuarioId);
+
+if (!permisos.getOrDefault("historial", false)) {
+    response.sendRedirect("menu-principal.jsp");
+    return;
+}
+// ======================================
+
 CompraServicio compraServicio = new CompraServicio();
 List<Compra> compras = compraServicio.obtenerUltimas(20);
 
-// Usamos un nombre ÚNICO para evitar "Duplicate local variable"
 ConfiguracionServicio servicioConfigMoneda = new ConfiguracionServicio();
 Configuracion configuracionMoneda = servicioConfigMoneda.obtenerConfiguracion();
 String simboloMoneda = (configuracionMoneda != null && configuracionMoneda.getMonedaSimbolo() != null) 
@@ -29,7 +38,9 @@ String simboloMoneda = (configuracionMoneda != null && configuracionMoneda.getMo
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h3>Compras Recientes</h3>
         <div>
+            <% if (permisos.getOrDefault("compra", false)) { %>
             <a href="registrar-compra.jsp" class="btn btn-primary me-2">Nueva Compra</a>
+            <% } %>
             <a href="menu-principal.jsp" class="btn btn-outline-secondary">Menú Principal</a>
         </div>
     </div>

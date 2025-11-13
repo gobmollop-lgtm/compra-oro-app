@@ -20,4 +20,3 @@ public void setContrasena(String contrasena) { this.contrasena = contrasena; }
     public void setRol(String rol) { this.rol = rol; }
 }
 
-// En modelo/Usuario.java
