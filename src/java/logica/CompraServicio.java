@@ -14,4 +14,6 @@ public class CompraServicio {
     public List<Compra> obtenerUltimas(int limite) {
         return compraDAO.listarUltimas(limite);
     }
+    
+
 }

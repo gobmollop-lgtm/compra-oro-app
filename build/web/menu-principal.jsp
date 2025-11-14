@@ -1,4 +1,3 @@
-<!-- Nuevo diceño de Menu con 1x4-->
 <%@ page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ page import="java.util.Map, logica.PermisoServicio" %>
 <%
@@ -242,6 +241,29 @@ String rol = (String) session.getAttribute("rol");
                             <i class="fas fa-shield-alt"></i>
                         </div>
                         <h5>Asignación de Permisos</h5>
+                        <p>Sin permiso</p>
+                    </div>
+                    <% } %>
+                </div>
+
+                <!-- Gestión de Fondos -->
+                <div class="col-6 col-md-6 col-lg-3">
+                    <% if (permisos.getOrDefault("asignacion_permisos", false)) { %>
+                    <a href="gestion-fondos.jsp" class="text-decoration-none">
+                        <div class="card menu-card h-100 border-primary">
+                            <div class="bg-primary text-white rounded-circle p-2 d-inline-block mb-2">
+                                <i class="fas fa-wallet"></i>
+                            </div>
+                            <h5>Gestión de Fondos</h5>
+                            <p>Asigna montos a compradores</p>
+                        </div>
+                    </a>
+                    <% } else { %>
+                    <div class="card menu-card h-100 border-secondary opacity-50">
+                        <div class="bg-secondary text-white rounded-circle p-2 d-inline-block mb-2">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                        <h5>Gestión de Fondos</h5>
                         <p>Sin permiso</p>
                     </div>
                     <% } %>

@@ -1,5 +1,5 @@
 <%@ page contentType="text/html" pageEncoding="UTF-8"%>
-<%@ page import="java.util.Map, logica.PermisoServicio, java.util.List, modelo.Cliente, logica.ClienteServicio, modelo.Configuracion, logica.ConfiguracionServicio" %>
+<%@ page import="java.util.Map, logica.PermisoServicio, java.util.List, modelo.Cliente, logica.ClienteServicio, modelo.Configuracion, logica.ConfiguracionServicio, modelo.FondoComprador, logica.FondoServicio, java.math.BigDecimal" %>
 <%
 // === PROTECCIÓN DINÁMICA: Registrar Compra ===
 if (session.getAttribute("usuarioId") == null) {
@@ -25,6 +25,11 @@ Configuracion datosMoneda = servicioMoneda.obtenerConfiguracion();
 String simboloMoneda = (datosMoneda != null && datosMoneda.getMonedaSimbolo() != null) 
     ? datosMoneda.getMonedaSimbolo() 
     : "$";
+
+// === Cargar saldo del comprador ===
+FondoServicio fondoServicio = new FondoServicio();
+FondoComprador fondo = fondoServicio.obtenerPorUsuario(usuarioId);
+BigDecimal saldoDisponible = fondo != null ? fondo.getSaldoDisponible() : BigDecimal.ZERO;
 %>
 <!DOCTYPE html>
 <html lang="es">
@@ -47,6 +52,15 @@ String simboloMoneda = (datosMoneda != null && datosMoneda.getMonedaSimbolo() !=
             </div>
         </div>
         <div class="card-body">
+            <!-- Alerta de saldo disponible -->
+            <div class="alert alert-info text-center mb-3">
+                <i class="fas fa-wallet me-1"></i> 
+                Saldo disponible: <%= simboloMoneda %><%= saldoDisponible.setScale(2, BigDecimal.ROUND_HALF_UP) %>
+                <% if (fondo != null) { %>
+                    <br><small>Asignado: <%= simboloMoneda %><%= fondo.getMontoAsignado().setScale(2, BigDecimal.ROUND_HALF_UP) %></small>
+                <% } %>
+            </div>
+
             <% if ("cliente_ok".equals(request.getParameter("msg"))) { %>
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 Cliente registrado.
@@ -54,7 +68,7 @@ String simboloMoneda = (datosMoneda != null && datosMoneda.getMonedaSimbolo() !=
             </div>
             <% } %>
 
-            <form action="registrar-compra" method="post">  <!-- ✅ CORREGIDO AQUÍ -->
+            <form action="registrar-compra" method="post">
                 <div class="mb-3">
                     <label class="form-label fw-bold">Cliente:</label>
                     <select name="clienteId" class="form-control" required>

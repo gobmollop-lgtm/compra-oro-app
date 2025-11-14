@@ -14,7 +14,7 @@ public class Compra {
     private BigDecimal total;       // = peso * kilate * punto
     private String observaciones;
     private Timestamp fecha;
-
+   
     // Getters y Setters
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }

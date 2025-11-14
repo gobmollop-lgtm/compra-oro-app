@@ -8,14 +8,16 @@ import modelo.Compra;
 
 public class CompraDAO {
     public void crear(Compra compra) {
-        String sql = "INSERT INTO compras_oro (cliente_id, peso_gramos, kilate, punto, observaciones) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO compras_oro (cliente_id, peso_gramos, kilate, punto, precio_gramo, total, observaciones, fecha) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())";
         try (Connection con = ConexionDB.obtenerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, compra.getClienteId());
             ps.setBigDecimal(2, compra.getPesoGramos());
             ps.setBigDecimal(3, compra.getKilate());
             ps.setBigDecimal(4, compra.getPunto());
-            ps.setString(5, compra.getObservaciones());
+            ps.setBigDecimal(5, compra.getPrecioGramo());
+            ps.setBigDecimal(6, compra.getTotal());
+            ps.setString(7, compra.getObservaciones());
             ps.executeUpdate();
         } catch (Exception e) {
             e.printStackTrace();
