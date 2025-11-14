@@ -10,4 +10,12 @@ public class ModuloServicio {
     public List<Modulo> obtenerTodosModulos() {
         return moduloDAO.listarTodos();
     }
+
+    // === NUEVO MÉTODO: AGREGAR MODULO ===
+    public boolean agregarModulo(Modulo modulo) {
+        if (modulo == null || modulo.getNombre() == null || modulo.getEtiqueta() == null) {
+            return false;
+        }
+        return moduloDAO.agregar(modulo.getNombre().trim(), modulo.getEtiqueta().trim());
+    }
 }
