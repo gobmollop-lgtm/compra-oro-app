@@ -47,7 +47,7 @@ public class FondoServicio {
         DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US);
         symbols.setDecimalSeparator('.');
         symbols.setGroupingSeparator(',');
-        DecimalFormat df = new DecimalFormat("$#,##0.00", symbols);
+        DecimalFormat df = new DecimalFormat("C$#,##0.00", symbols);
         return df.format(monto.setScale(2, BigDecimal.ROUND_HALF_UP));
     }
 }

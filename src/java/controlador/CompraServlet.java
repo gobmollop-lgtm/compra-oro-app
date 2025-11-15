@@ -70,6 +70,7 @@ public class CompraServlet extends HttpServlet {
                 // Registrar compra
                 Compra compra = new Compra();
                 compra.setClienteId(clienteId);
+                compra.setUsuarioId(usuarioId); // 👈 CORREGIDO
                 compra.setPesoGramos(peso);
                 compra.setKilate(kilate);
                 compra.setPunto(punto);
@@ -80,7 +81,7 @@ public class CompraServlet extends HttpServlet {
                 CompraServicio servicio = new CompraServicio();
                 servicio.registrar(compra);
 
-                // ✅ Deducir monto del fondo
+                // Deducir monto del fondo
                 fondoServicio.deducirMonto(usuarioId, total);
 
                 response.sendRedirect("lista-compras.jsp?exito=1");
@@ -110,8 +111,16 @@ public class CompraServlet extends HttpServlet {
             BigDecimal punto = new BigDecimal(json.get("punto").getAsString());
             String observaciones = json.has("observaciones") ? json.get("observaciones").getAsString() : "";
 
+            // Obtener usuarioId de la sesión
+            HttpSession session = request.getSession();
+            Integer usuarioId = (Integer) session.getAttribute("usuarioId");
+            if (usuarioId == null) {
+                throw new RuntimeException("Usuario no autenticado");
+            }
+
             Compra compra = new Compra();
             compra.setClienteId(clienteId);
+            compra.setUsuarioId(usuarioId); // 👈 CORREGIDO
             compra.setPesoGramos(peso);
             compra.setKilate(kilate);
             compra.setPunto(punto);

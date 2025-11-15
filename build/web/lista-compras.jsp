@@ -1,7 +1,6 @@
 <%@ page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ page import="java.util.List, modelo.Compra, logica.CompraServicio, modelo.Configuracion, logica.ConfiguracionServicio, java.util.Map, logica.PermisoServicio" %>
 <%
-// === PROTECCIÓN DINÁMICA: Historial ===
 if (session.getAttribute("usuarioId") == null) {
     response.sendRedirect("login.jsp");
     return;
@@ -14,7 +13,6 @@ if (!permisos.getOrDefault("historial", false)) {
     response.sendRedirect("menu-principal.jsp");
     return;
 }
-// ======================================
 
 CompraServicio compraServicio = new CompraServicio();
 List<Compra> compras = compraServicio.obtenerUltimas(20);
@@ -53,6 +51,7 @@ String simboloMoneda = (configuracionMoneda != null && configuracionMoneda.getMo
         <table class="table table-striped table-bordered">
             <thead class="table-dark">
                 <tr>
+                    <th>Usuario</th>
                     <th>Cliente</th>
                     <th>Peso</th>
                     <th>Kilate</th>
@@ -65,6 +64,7 @@ String simboloMoneda = (configuracionMoneda != null && configuracionMoneda.getMo
             <tbody>
                 <% for (Compra c : compras) { %>
                 <tr>
+                    <td><%= c.getNombreUsuario() %></td>
                     <td><%= c.getNombreCliente() %></td>
                     <td><%= c.getPesoGramos() %></td>
                     <td><%= c.getKilate() %></td>

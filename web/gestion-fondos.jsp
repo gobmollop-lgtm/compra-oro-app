@@ -18,7 +18,7 @@ if (!permisos.getOrDefault("asignacion_permisos", false)) {
 // ======================================
 
 UsuarioServicio usuarioServicio = new UsuarioServicio();
-List<Usuario> compradores = usuarioServicio.obtenerPorRol("comprador");
+List<Usuario> todosUsuarios = usuarioServicio.obtenerTodosLosUsuarios(); // 👈 Todos los usuarios
 
 FondoServicio fondoServicio = new FondoServicio();
 %>
@@ -28,17 +28,19 @@ FondoServicio fondoServicio = new FondoServicio();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recarga de Fondos - Compradores</title>
+    <title>Gestión de Fondos - Todos los Usuarios</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .table th, .table td { vertical-align: middle; }
+        .badge-admin { background-color: #28a745; }
+        .badge-comprador { background-color: #17a2b8; }
     </style>
 </head>
 <body class="bg-light">
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3><i class="fas fa-wallet me-2"></i>Recarga de Fondos - Compradores</h3>
+        <h3><i class="fas fa-wallet me-2"></i>Gestión de Fondos - Todos los Usuarios</h3>
         <a href="menu-principal.jsp" class="btn btn-outline-secondary btn-sm">Volver al Menú</a>
     </div>
 
@@ -61,7 +63,8 @@ FondoServicio fondoServicio = new FondoServicio();
                 <table class="table table-hover">
                     <thead class="table-dark">
                         <tr>
-                            <th>Comprador</th>
+                            <th>Usuario</th>
+                            <th>Rol</th>
                             <th>Monto Asignado</th>
                             <th>Monto Usado</th>
                             <th>Saldo Disponible</th>
@@ -69,8 +72,8 @@ FondoServicio fondoServicio = new FondoServicio();
                         </tr>
                     </thead>
                     <tbody>
-                        <% if (compradores != null && !compradores.isEmpty()) { %>
-                            <% for (Usuario u : compradores) {
+                        <% if (todosUsuarios != null && !todosUsuarios.isEmpty()) { %>
+                            <% for (Usuario u : todosUsuarios) {
                                 FondoComprador fondo = fondoServicio.obtenerPorUsuario(u.getId());
                                 java.math.BigDecimal asignado = fondo != null ? fondo.getMontoAsignado() : java.math.BigDecimal.ZERO;
                                 java.math.BigDecimal usado = fondo != null ? fondo.getMontoUsado() : java.math.BigDecimal.ZERO;
@@ -80,6 +83,13 @@ FondoServicio fondoServicio = new FondoServicio();
                                 <td>
                                     <strong><%= u.getNombre() %></strong><br>
                                     <small class="text-muted">@<%= u.getUsuario() %></small>
+                                </td>
+                                <td>
+                                    <% if ("admin".equals(u.getRol())) { %>
+                                        <span class="badge badge-admin">Administrador</span>
+                                    <% } else { %>
+                                        <span class="badge badge-comprador">Comprador</span>
+                                    <% } %>
                                 </td>
                                 <td><%= logica.FondoServicio.formatearMonto(asignado) %></td>
                                 <td><%= logica.FondoServicio.formatearMonto(usado) %></td>
@@ -101,9 +111,9 @@ FondoServicio fondoServicio = new FondoServicio();
                             <% } %>
                         <% } else { %>
                             <tr>
-                                <td colspan="5" class="text-center text-muted py-4">
+                                <td colspan="6" class="text-center text-muted py-4">
                                     <i class="fas fa-user-friends fa-2x mb-2"></i><br>
-                                    No hay compradores registrados.
+                                    No hay usuarios registrados.
                                 </td>
                             </tr>
                         <% } %>

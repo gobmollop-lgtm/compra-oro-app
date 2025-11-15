@@ -45,7 +45,11 @@ public class UsuarioServicio {
     }
     
     // === NUEVO MÉTODO: Obtener usuarios por rol ===
-    public List<Usuario> obtenerPorRol(String rol) {
-        return usuarioDAO.obtenerPorRol(rol);
-    }
+    //public List<Usuario> obtenerPorRol(String rol) {
+       // return usuarioDAO.obtenerPorRol(rol);
+    //}
+    // En logica/UsuarioServicio.java
+public List<Usuario> obtenerTodosLosUsuarios() {
+    return usuarioDAO.listarTodos();
+}
 }

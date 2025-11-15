@@ -1,12 +1,18 @@
 <%@ page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ page import="java.util.Map, logica.PermisoServicio, java.util.List, modelo.Cliente, logica.ClienteServicio, modelo.Configuracion, logica.ConfiguracionServicio, modelo.FondoComprador, logica.FondoServicio, java.math.BigDecimal" %>
 <%
-// === PROTECCIÓN DINÁMICA: Registrar Compra ===
 if (session.getAttribute("usuarioId") == null) {
     response.sendRedirect("login.jsp");
     return;
 }
 int usuarioId = Integer.parseInt(session.getAttribute("usuarioId").toString());
+
+if (usuarioId <= 0) {
+    request.setAttribute("error", "Error: Usuario no válido");
+    request.getRequestDispatcher("registrar-compra.jsp").forward(request, response);
+    return;
+}
+
 PermisoServicio permisoServicio = new PermisoServicio();
 Map<String, Boolean> permisos = permisoServicio.obtenerPermisosPorUsuario(usuarioId);
 
@@ -14,7 +20,6 @@ if (!permisos.getOrDefault("compra", false)) {
     response.sendRedirect("menu-principal.jsp");
     return;
 }
-// ==============================================
 
 String rol = (String) session.getAttribute("rol");
 ClienteServicio clienteServicio = new ClienteServicio();
@@ -26,7 +31,6 @@ String simboloMoneda = (datosMoneda != null && datosMoneda.getMonedaSimbolo() !=
     ? datosMoneda.getMonedaSimbolo() 
     : "$";
 
-// === Cargar saldo del comprador ===
 FondoServicio fondoServicio = new FondoServicio();
 FondoComprador fondo = fondoServicio.obtenerPorUsuario(usuarioId);
 BigDecimal saldoDisponible = fondo != null ? fondo.getSaldoDisponible() : BigDecimal.ZERO;
@@ -52,7 +56,6 @@ BigDecimal saldoDisponible = fondo != null ? fondo.getSaldoDisponible() : BigDec
             </div>
         </div>
         <div class="card-body">
-            <!-- Alerta de saldo disponible -->
             <div class="alert alert-info text-center mb-3">
                 <i class="fas fa-wallet me-1"></i> 
                 Saldo disponible: <%= simboloMoneda %><%= saldoDisponible.setScale(2, BigDecimal.ROUND_HALF_UP) %>
@@ -80,7 +83,6 @@ BigDecimal saldoDisponible = fondo != null ? fondo.getSaldoDisponible() : BigDec
                 </div>
 
                 <%
-                    // Mostrar modal de nuevo cliente si tiene permiso para clientes
                     if ("admin".equals(rol) || permisos.getOrDefault("clientes", false)) {
                 %>
                 <div class="text-end mb-2">
@@ -158,7 +160,10 @@ BigDecimal saldoDisponible = fondo != null ? fondo.getSaldoDisponible() : BigDec
         </div>
     </div>
 </div>
-
+<!-- Solo para prueba -->
+<div class="alert alert-warning">
+    Usuario ID actual: <%= usuarioId %>
+</div>
 <script>
 function calcular() {
     const peso = parseFloat(document.getElementById('peso').value) || 0;

@@ -177,28 +177,22 @@ String rol = (String) session.getAttribute("rol");
                     <% } %>
                 </div>
 
-                <!-- Colaboradores -->
-                <div class="col-6 col-md-6 col-lg-3">
-                    <% if (permisos.getOrDefault("colaboradores", false)) { %>
-                    <a href="colaboradores.jsp" class="text-decoration-none">
-                        <div class="card menu-card h-100 border-primary">
-                            <div class="bg-primary text-white rounded-circle p-2 d-inline-block mb-2">
-                                <i class="fas fa-handshake"></i>
-                            </div>
-                            <h5>Colaboradores</h5>
-                            <p>Gestiona tu equipo de trabajo</p>
-                        </div>
-                    </a>
-                    <% } else { %>
-                    <div class="card menu-card h-100 border-secondary opacity-50">
-                        <div class="bg-secondary text-white rounded-circle p-2 d-inline-block mb-2">
-                            <i class="fas fa-handshake"></i>
-                        </div>
-                        <h5>Colaboradores</h5>
-                        <p>Sin permiso</p>
-                    </div>
-                    <% } %>
-                </div>
+                <!-- Compra resumen -->
+<div class="col-6 col-md-6 col-lg-3">
+    <% if (permisos.getOrDefault("colaboradores", false)) { %>
+    <a href="compras-por-usuario.jsp" class="text-decoration-none">
+        <div class="card menu-card h-100 border-primary">
+            <div class="bg-primary text-white rounded-circle p-2 d-inline-block mb-2">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <h5>Rendimiento</h5>
+            <p>Compras por usuario</p>
+        </div>
+    </a>
+    <% } else { %>
+    <!-- ... -->
+    <% } %>
+</div>
 
                 <!-- Configuración -->
                 <div class="col-6 col-md-6 col-lg-3">
