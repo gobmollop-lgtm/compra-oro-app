@@ -79,8 +79,19 @@ df.setDecimalFormatSymbols(new DecimalFormatSymbols(java.util.Locale.US));
         .btn-imprimir:hover {
             background-color: #5a6268;
         }
-
-        /* Estilos para impresión */
+        .btn-excel {
+            background-color: #28a745;
+            color: white;
+            border: none;
+        }
+        .btn-excel:hover {
+            background-color: #218838;
+        }
+        .btn-ver-foto {
+            padding: 2px 8px;
+            font-size: 0.8rem;
+            min-width: 60px;
+        }
         @media print {
             body * {
                 visibility: hidden;
@@ -115,11 +126,33 @@ df.setDecimalFormatSymbols(new DecimalFormatSymbols(java.util.Locale.US));
             </h4>
         </div>
         <div class="card-body">
-            <!-- Botones: Imprimir + Volver al Menú Principal + Volver al Resumen -->
+
+            <!-- Formulario oculto -->
+<form id="formExportarExcel" method="post" action="ExportarComprasExcelServlet" style="display:none;">
+    <input type="hidden" name="tablaHTML" id="tablaHTML">
+    <input type="hidden" name="nombreUsuario" id="nombreUsuario" value="<%= usuarioDetalle.getNombre() %>">
+</form>
+
+<script>
+function exportarAExcel() {
+    // Capturar SOLO la tabla de datos (sin totales)
+    const tabla = document.querySelector('#contenido-imprimible table').outerHTML;
+    if (!tabla) {
+        alert('No se encontró la tabla para exportar.');
+        return;
+    }
+    document.getElementById('tablaHTML').value = tabla;
+    document.getElementById('formExportarExcel').submit();
+}
+</script>
+
             <div class="d-flex justify-content-between mb-3 no-print">
                 <div>
                     <button class="btn btn-sm btn-imprimir me-2" onclick="window.print()">
                         <i class="fas fa-print me-1"></i>Imprimir Reporte
+                    </button>
+                    <button class="btn btn-sm btn-excel me-2" onclick="exportarAExcel()">
+                        <i class="fas fa-file-excel me-1"></i>Exportar a Excel
                     </button>
                     <a href="menu-principal.jsp" class="btn btn-sm btn-outline-secondary">
                         <i class="fas fa-home me-1"></i>Volver al Menú Principal
@@ -143,6 +176,7 @@ df.setDecimalFormatSymbols(new DecimalFormatSymbols(java.util.Locale.US));
                                     <th>Precio/g</th>
                                     <th>Total</th>
                                     <th>Fecha</th>
+                                    <th>Foto</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -155,6 +189,15 @@ df.setDecimalFormatSymbols(new DecimalFormatSymbols(java.util.Locale.US));
                                     <td><%= simboloMoneda %><%= df.format(c.getPrecioGramo().setScale(2, RoundingMode.HALF_UP)) %></td>
                                     <td class="fw-bold"><%= simboloMoneda %><%= df.format(c.getTotal().setScale(2, RoundingMode.HALF_UP)) %></td>
                                     <td><%= c.getFecha() %></td>
+                                    <td>
+                                        <% if (c.getRutaFoto() != null && !c.getRutaFoto().trim().isEmpty()) { %>
+                                            <a href="<%= request.getContextPath() %>/<%= c.getRutaFoto() %>" target="_blank" class="btn btn-sm btn-outline-primary btn-ver-foto">
+                                                Ver
+                                            </a>
+                                        <% } else { %>
+                                            <span class="text-muted">-</span>
+                                        <% } %>
+                                    </td>
                                 </tr>
                                 <% } %>
                             </tbody>
@@ -166,6 +209,7 @@ df.setDecimalFormatSymbols(new DecimalFormatSymbols(java.util.Locale.US));
                                     <td></td>
                                     <td></td>
                                     <td><%= simboloMoneda %><%= df.format(totalGeneral.setScale(2, RoundingMode.HALF_UP)) %></td>
+                                    <td></td>
                                     <td></td>
                                 </tr>
                             </tfoot>
@@ -179,7 +223,6 @@ df.setDecimalFormatSymbols(new DecimalFormatSymbols(java.util.Locale.US));
                 </div>
             <% } %>
         </div>
-        <!-- Eliminado el botón "Volver al Resumen" del footer -->
     </div>
 </div>
 

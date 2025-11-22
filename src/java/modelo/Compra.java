@@ -14,17 +14,15 @@ public class Compra {
     private BigDecimal punto;
     private BigDecimal precioGramo;
     private BigDecimal total;
-    private String observaciones;
+    private String rutaFoto; // <<<< CAMBIADO: en lugar de observaciones
     private Timestamp fecha;
     
-  // Setter para usuarioId
     public void setUsuarioId(int usuarioId) {
         this.usuarioId = usuarioId;
     }
 
     public int getUsuarioId() { return usuarioId; }
     
-
     public String getNombreUsuario() { return nombreUsuario; }
     public void setNombreUsuario(String nombreUsuario) { this.nombreUsuario = nombreUsuario; }
 
@@ -34,11 +32,8 @@ public class Compra {
     public int getClienteId() { return clienteId; }
     public void setClienteId(int clienteId) { this.clienteId = clienteId; }
 
-
-
     public String getNombreCliente() { return nombreCliente; }
     public void setNombreCliente(String nombreCliente) { this.nombreCliente = nombreCliente; }
-
 
     public BigDecimal getPesoGramos() { return pesoGramos; }
     public void setPesoGramos(BigDecimal pesoGramos) { this.pesoGramos = pesoGramos; }
@@ -55,8 +50,9 @@ public class Compra {
     public BigDecimal getTotal() { return total; }
     public void setTotal(BigDecimal total) { this.total = total; }
 
-    public String getObservaciones() { return observaciones; }
-    public void setObservaciones(String observaciones) { this.observaciones = observaciones; }
+    // <<<< CAMBIADO: rutaFoto en lugar de observaciones
+    public String getRutaFoto() { return rutaFoto; }
+    public void setRutaFoto(String rutaFoto) { this.rutaFoto = rutaFoto; }
 
     public Timestamp getFecha() { return fecha; }
     public void setFecha(Timestamp fecha) { this.fecha = fecha; }

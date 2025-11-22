@@ -29,7 +29,7 @@ ConfiguracionServicio servicioMoneda = new ConfiguracionServicio();
 Configuracion datosMoneda = servicioMoneda.obtenerConfiguracion();
 String simboloMoneda = (datosMoneda != null && datosMoneda.getMonedaSimbolo() != null) 
     ? datosMoneda.getMonedaSimbolo() 
-    : "$";
+    : "C$";
 
 FondoServicio fondoServicio = new FondoServicio();
 FondoComprador fondo = fondoServicio.obtenerPorUsuario(usuarioId);
@@ -42,6 +42,14 @@ BigDecimal saldoDisponible = fondo != null ? fondo.getSaldoDisponible() : BigDec
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registrar Compra</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .img-preview {
+            max-width: 200px;
+            max-height: 200px;
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
 </head>
 <body class="bg-light">
 <div class="container mt-4">
@@ -71,7 +79,7 @@ BigDecimal saldoDisponible = fondo != null ? fondo.getSaldoDisponible() : BigDec
             </div>
             <% } %>
 
-            <form action="registrar-compra" method="post">
+            <form action="registrar-compra" method="post" enctype="multipart/form-data">
                 <div class="mb-3">
                     <label class="form-label fw-bold">Cliente:</label>
                     <select name="clienteId" class="form-control" required>
@@ -117,9 +125,12 @@ BigDecimal saldoDisponible = fondo != null ? fondo.getSaldoDisponible() : BigDec
                     </div>
                 </div>
 
+                <!-- Sección de imagen en lugar de observaciones -->
                 <div class="mb-3">
-                    <label class="form-label">Observaciones</label>
-                    <textarea name="observaciones" class="form-control" rows="2"></textarea>
+                    <label class="form-label">Foto de la Compra</label>
+                    <input type="file" name="fotoCompra" id="fotoCompra" class="form-control" accept="image/jpeg,image/png">
+                    <div class="form-text">Formatos permitidos: JPG, PNG (máx. 5 MB)</div>
+                    <img id="imgPreview" class="img-thumbnail img-preview" src="#" alt="Vista previa">
                 </div>
 
                 <button type="submit" class="btn btn-success w-100">Registrar Compra</button>
@@ -160,10 +171,7 @@ BigDecimal saldoDisponible = fondo != null ? fondo.getSaldoDisponible() : BigDec
         </div>
     </div>
 </div>
-<!-- Solo para prueba -->
-<div class="alert alert-warning">
-    Usuario ID actual: <%= usuarioId %>
-</div>
+
 <script>
 function calcular() {
     const peso = parseFloat(document.getElementById('peso').value) || 0;
@@ -175,6 +183,22 @@ function calcular() {
     document.getElementById('precioGramo').value = simbolo + precioGramo.toFixed(2);
     document.getElementById('total').value = simbolo + total.toFixed(2);
 }
+
+// Vista previa de la imagen
+document.getElementById('fotoCompra').addEventListener('change', function(e) {
+    const preview = document.getElementById('imgPreview');
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+        }
+        reader.readAsDataURL(file);
+    } else {
+        preview.style.display = 'none';
+    }
+});
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
