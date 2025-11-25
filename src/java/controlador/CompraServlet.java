@@ -26,8 +26,6 @@ import modelo.Configuracion;
                  maxRequestSize = 10 * 1024 * 1024) // 10 MB
 public class CompraServlet extends HttpServlet {
 
-    private static final String UPLOAD_DIR = "images" + File.separator + "compras";
-
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -73,38 +71,33 @@ public class CompraServlet extends HttpServlet {
                     if (ext.equals(".jpg") || ext.equals(".jpeg") || ext.equals(".png")) {
                         String uniqueName = "compra_" + UUID.randomUUID().toString() + ext;
 
-                        // ✅ Usar getRealPath() con verificación
-                        String appPath = request.getServletContext().getRealPath("");
-                        if (appPath == null) {
-                            // Fallback: usar la carpeta temporal del sistema
-                            appPath = System.getProperty("java.io.tmpdir");
-                        }
-                        String savePath = appPath + File.separator + "images" + File.separator + "compras";
+                        // ✅ RUTA FIJA: Carpeta física específica
+                        String savePath = "C:\\Users\\EZEQUIAS\\CompraOroApp\\web\\images\\compras";
                         File dir = new File(savePath);
-                        if (!dir.exists()) dir.mkdirs();
+                        if (!dir.exists()) {
+                            dir.mkdirs();
+                        }
 
                         Path filePath = Paths.get(savePath, uniqueName);
                         Files.copy(filePart.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-                        rutaFoto = "images/compras/" + uniqueName;
+                        rutaFoto = "images/compras/" + uniqueName; // Ruta relativa para la BD
                     }
                 }
             }
 
-Compra compra = new Compra();
-compra.setClienteId(clienteId);
-compra.setUsuarioId(usuarioId);
-compra.setPesoGramos(peso);
-compra.setKilate(kilate);
-compra.setPunto(punto);
-compra.setRutaFoto(rutaFoto);
-compra.setPrecioGramo(precioGramo);
-compra.setTotal(total);
-// >>> AÑADIR ESTA LÍNEA <<<
-compra.setEstado("Pendiente"); // Estado por defecto
+            Compra compra = new Compra();
+            compra.setClienteId(clienteId);
+            compra.setUsuarioId(usuarioId);
+            compra.setPesoGramos(peso);
+            compra.setKilate(kilate);
+            compra.setPunto(punto);
+            compra.setRutaFoto(rutaFoto);
+            compra.setPrecioGramo(precioGramo);
+            compra.setTotal(total);
+            compra.setEstado("Pendiente"); // Estado por defecto
 
-CompraServicio servicio = new CompraServicio();
-servicio.registrar(compra);
-        
+            CompraServicio servicio = new CompraServicio();
+            servicio.registrar(compra);
 
             fondoServicio.deducirMonto(usuarioId, total);
 
@@ -116,5 +109,4 @@ servicio.registrar(compra);
             request.getRequestDispatcher("registrar-compra.jsp").forward(request, response);
         }
     }
-    
 }

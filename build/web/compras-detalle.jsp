@@ -158,7 +158,7 @@ df.setDecimalFormatSymbols(new DecimalFormatSymbols(java.util.Locale.US));
         </div>
         <div class="card-body">
 
-            <!-- Formulario de filtros y botones en una sola fila -->
+            <!-- Formulario de filtros -->
             <form method="get" class="row g-1 mb-3 no-print align-items-center">
                 <input type="hidden" name="usuarioId" value="<%= usuarioIdDetalle %>">
                 <div class="col-auto">
@@ -193,45 +193,29 @@ df.setDecimalFormatSymbols(new DecimalFormatSymbols(java.util.Locale.US));
                         Limpiar
                     </a>
                 </div>
-                <div class="col-auto">
-                    <button class="btn btn-sm btn-secondary" onclick="window.print()">
-                        <i class="fas fa-print me-1"></i>Imprimir
-                    </button>
-                </div>
-                <div class="col-auto">
-                    <button class="btn btn-sm btn-success" onclick="exportarAExcel()">
-                        <i class="fas fa-file-excel me-1"></i>Exportar
-                    </button>
-                </div>
-                <div class="col-auto">
-                    <a href="menu-principal.jsp" class="btn btn-sm btn-outline-secondary">
-                        <i class="fas fa-home me-1"></i>Menú
-                    </a>
-                </div>
-                <div class="col-auto">
-                    <a href="compras-por-usuario.jsp" class="btn btn-sm btn-outline-primary">
-                        <i class="fas fa-arrow-left me-1"></i>Resumen
-                    </a>
-                </div>
             </form>
+
+            <!-- Botones de acción (fuera del formulario de filtros) -->
+            <div class="d-flex flex-wrap gap-2 mb-3 no-print">
+                <button class="btn btn-sm btn-secondary" onclick="window.print()">
+                    <i class="fas fa-print me-1"></i>Imprimir
+                </button>
+                <button class="btn btn-sm btn-success" onclick="exportarAExcel()">
+                    <i class="fas fa-file-excel me-1"></i>Exportar
+                </button>
+                <a href="menu-principal.jsp" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-home me-1"></i>Menú
+                </a>
+                <a href="compras-por-usuario.jsp" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-arrow-left me-1"></i>Resumen
+                </a>
+            </div>
 
             <!-- Formulario oculto para exportar Excel -->
             <form id="formExportarExcel" method="post" action="ExportarComprasExcelServlet" style="display:none;">
                 <input type="hidden" name="tablaHTML" id="tablaHTML">
                 <input type="hidden" name="nombreUsuario" id="nombreUsuario" value="<%= usuarioDetalle.getNombre() %>">
             </form>
-
-            <script>
-            function exportarAExcel() {
-                const tabla = document.querySelector('#contenido-imprimible table').outerHTML;
-                if (!tabla) {
-                    alert('No se encontró la tabla para exportar.');
-                    return;
-                }
-                document.getElementById('tablaHTML').value = tabla;
-                document.getElementById('formExportarExcel').submit();
-            }
-            </script>
 
             <% 
             String error = request.getParameter("error");
@@ -359,6 +343,17 @@ df.setDecimalFormatSymbols(new DecimalFormatSymbols(java.util.Locale.US));
     </div>
 </div>
 
+<script>
+function exportarAExcel() {
+    const table = document.querySelector('#contenido-imprimible table');
+    if (!table) {
+        alert('No se encontró la tabla para exportar.');
+        return;
+    }
+    document.getElementById('tablaHTML').value = table.outerHTML;
+    document.getElementById('formExportarExcel').submit();
+}
+</script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
-</html>
+</html>                                

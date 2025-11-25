@@ -40,6 +40,25 @@ public class ExportarComprasExcelServlet extends HttpServlet {
         Document doc = Jsoup.parse(tablaHTML);
         Elements filas = doc.select("tr");
 
+        if (filas.isEmpty()) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "No hay datos en la tabla");
+            return;
+        }
+
+        // Determinar el número de columnas (máximo de la primera fila que tenga datos)
+        int numColumnas = 0;
+        for (Element fila : filas) {
+            int cols = fila.select("th, td").size();
+            if (cols > numColumnas) {
+                numColumnas = cols;
+            }
+        }
+
+        if (numColumnas == 0) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Tabla sin columnas");
+            return;
+        }
+
         XSSFWorkbook wb = new XSSFWorkbook();
         Sheet sheet = wb.createSheet("Compras de " + nombreUsuario);
 
@@ -60,9 +79,9 @@ public class ExportarComprasExcelServlet extends HttpServlet {
         // === Estilo para encabezado de tabla ===
         XSSFFont headerFont = wb.createFont();
         headerFont.setBold(true);
+        headerFont.setColor(IndexedColors.WHITE.getIndex());
 
         XSSFCellStyle headerStyle = wb.createCellStyle();
-        headerFont.setColor(IndexedColors.WHITE.getIndex());
         headerStyle.setFont(headerFont);
         headerStyle.setFillForegroundColor(IndexedColors.DARK_BLUE.getIndex());
         headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
@@ -84,22 +103,21 @@ public class ExportarComprasExcelServlet extends HttpServlet {
         titleCell.setCellValue("Comprador: " + nombreUsuario);
         titleCell.setCellStyle(titleStyle);
 
-        // Fusionar celdas del título → AHORA SON 8 COLUMNAS (0 a 7)
-        sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 7));
+        // Fusionar celdas del título según el número real de columnas
+        sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, numColumnas - 1));
 
         // === Línea 2: Espacio vacío (opcional) ===
-        sheet.createRow(1); // fila vacía
+        sheet.createRow(1);
 
         // === Línea 3 en adelante: Tabla de datos ===
         int filaNum = 2;
         for (Element fila : filas) {
             Row row = sheet.createRow(filaNum++);
             Elements columnas = fila.select("th, td");
-            int colNum = 0;
-            for (Element col : columnas) {
-                Cell cell = row.createCell(colNum++);
-                cell.setCellValue(col.text());
-                if (col.tagName().equalsIgnoreCase("th")) {
+            for (int colNum = 0; colNum < columnas.size(); colNum++) {
+                Cell cell = row.createCell(colNum);
+                cell.setCellValue(columnas.get(colNum).text());
+                if (columnas.get(colNum).tagName().equalsIgnoreCase("th")) {
                     cell.setCellStyle(headerStyle);
                 } else {
                     cell.setCellStyle(cellStyle);
@@ -107,9 +125,9 @@ public class ExportarComprasExcelServlet extends HttpServlet {
             }
         }
 
-        // Ajustar ancho de columnas → AHORA SON 8
-        for (int i = 0; i < 8; i++) {
-            sheet.setColumnWidth(i, sheet.getColumnWidth(i) + 2000);
+        // Ajustar ancho de columnas dinámicamente
+        for (int i = 0; i < numColumnas; i++) {
+            sheet.setColumnWidth(i, 4000);
         }
 
         // Nombre del archivo
