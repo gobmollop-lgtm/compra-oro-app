@@ -16,10 +16,12 @@ public class Compra {
     private BigDecimal total;
     private String rutaFoto;
     private Timestamp fecha;
-    // >>> NUEVO CAMPO <<<
-    private String estado; // "Pendiente" o "Entregado"
+    private String estado;
 
-    // Getters y setters existentes (no se modifican)
+    // >>> NUEVO CAMPO PARA IMAGEN EN BLOB <<<
+    private byte[] imagen;
+
+    // Getters y setters existentes
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
@@ -56,12 +58,15 @@ public class Compra {
     public Timestamp getFecha() { return fecha; }
     public void setFecha(Timestamp fecha) { this.fecha = fecha; }
 
-    // >>> NUEVOS GETTER Y SETTER <<<
-    public String getEstado() {
-        return estado;
+    public String getEstado() { return estado; }
+    public void setEstado(String estado) { this.estado = estado; }
+
+    // >>> NUEVOS GETTER Y SETTER PARA IMAGEN <<<
+    public byte[] getImagen() {
+        return imagen;
     }
 
-    public void setEstado(String estado) {
-        this.estado = estado;
+    public void setImagen(byte[] imagen) {
+        this.imagen = imagen;
     }
 }

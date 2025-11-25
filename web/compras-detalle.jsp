@@ -9,19 +9,18 @@ if (session.getAttribute("usuarioId") == null) {
 int usuarioIdSesion = Integer.parseInt(session.getAttribute("usuarioId").toString());
 String rolSesion = (String) session.getAttribute("rol");
 
-// Si es admin, dar todos los permisos
 boolean esAdmin = "admin".equals(rolSesion);
 Map<String, Boolean> permisos = new java.util.HashMap<>();
-if (esAdmin) {
-    permisos.put("colaboradores", true);
-    permisos.put("eliminar_compras", true);
-} else {
+if (!esAdmin) {
     PermisoServicio permisoServicio = new PermisoServicio();
     permisos = permisoServicio.obtenerPermisosPorUsuario(usuarioIdSesion);
     if (!permisos.getOrDefault("colaboradores", false)) {
         response.sendRedirect("menu-principal.jsp");
         return;
     }
+} else {
+    permisos.put("colaboradores", true);
+    permisos.put("eliminar_compras", true);
 }
 
 String usuarioIdParam = request.getParameter("usuarioId");
@@ -31,7 +30,6 @@ if (usuarioIdParam == null || usuarioIdParam.isEmpty()) {
 }
 
 int usuarioIdDetalle = Integer.parseInt(usuarioIdParam);
-
 UsuarioServicio usuarioServicio = new UsuarioServicio();
 Usuario usuarioDetalle = usuarioServicio.obtenerPorId(usuarioIdDetalle);
 if (usuarioDetalle == null) {
@@ -39,17 +37,14 @@ if (usuarioDetalle == null) {
     return;
 }
 
-// Obtener parámetros de filtro
 String fechaInicioStr = request.getParameter("fechaInicio");
 String fechaFinStr = request.getParameter("fechaFin");
 String estadoFiltro = request.getParameter("estado");
 
-// Determinar si es la primera carga
 boolean esPrimeraCarga = (fechaInicioStr == null || fechaInicioStr.isEmpty()) && 
                          (fechaFinStr == null || fechaFinStr.isEmpty()) && 
                          (estadoFiltro == null);
 
-// Si es la primera carga, usar "Pendiente" por defecto
 if (esPrimeraCarga) {
     estadoFiltro = "Pendiente";
 }
@@ -73,13 +68,8 @@ for (Compra c : comprasTodas) {
         .toLocalDate();
     if (fechaInicio != null && fechaCompra.isBefore(fechaInicio)) continue;
     if (fechaFin != null && fechaCompra.isAfter(fechaFin)) continue;
-
-    // Filtrar por estado
-    if ("Pendiente".equals(estadoFiltro)) {
-        if (!"Pendiente".equals(c.getEstado())) continue;
-    } else if ("Recibido".equals(estadoFiltro)) {
-        if (!"Recibido".equals(c.getEstado())) continue;
-    }
+    if ("Pendiente".equals(estadoFiltro) && !"Pendiente".equals(c.getEstado())) continue;
+    if ("Recibido".equals(estadoFiltro) && !"Recibido".equals(c.getEstado())) continue;
     compras.add(c);
 }
 
@@ -118,21 +108,10 @@ df.setDecimalFormatSymbols(new DecimalFormatSymbols(java.util.Locale.US));
             font-weight: bold;
             background-color: #f8f9fa;
         }
-        .btn-imprimir { background-color: #6c757d; color: white; border: none; padding: 2px 6px; font-size: 0.75rem; }
-        .btn-imprimir:hover { background-color: #5a6268; }
-        .btn-excel { background-color: #28a745; color: white; border: none; padding: 2px 6px; font-size: 0.75rem; }
-        .btn-excel:hover { background-color: #218838; }
-        .btn-ver-foto { padding: 2px 6px; font-size: 0.75rem; min-width: 50px; }
-        .btn-recibido { padding: 2px 6px; font-size: 0.75rem; }
-        .btn-eliminar { padding: 2px 6px; font-size: 0.75rem; }
-        .form-control-sm { font-size: 0.75rem; padding: 0.25rem 0.5rem; height: calc(1.5em + 0.5rem + 2px); }
-        .form-select-sm { font-size: 0.75rem; padding: 0.25rem 0.5rem; height: calc(1.5em + 0.5rem + 2px); }
-        .input-group-sm > .form-control,
-        .input-group-sm > .form-select,
-        .input-group-sm > .input-group-text {
+        .btn-xs {
+            padding: 2px 6px;
             font-size: 0.75rem;
-            padding: 0.25rem 0.5rem;
-            height: calc(1.5em + 0.5rem + 2px);
+            min-width: 50px;
         }
         @media print {
             body * { visibility: hidden; }
@@ -158,24 +137,13 @@ df.setDecimalFormatSymbols(new DecimalFormatSymbols(java.util.Locale.US));
         </div>
         <div class="card-body">
 
-            <!-- Formulario de filtros -->
             <form method="get" class="row g-1 mb-3 no-print align-items-center">
                 <input type="hidden" name="usuarioId" value="<%= usuarioIdDetalle %>">
-                <div class="col-auto">
-                    <label class="form-label mb-0">Fecha Inicio</label>
-                </div>
-                <div class="col-auto">
-                    <input type="date" class="form-control form-control-sm" name="fechaInicio" value="<%= (fechaInicioStr != null ? fechaInicioStr : "") %>">
-                </div>
-                <div class="col-auto">
-                    <label class="form-label mb-0">Fecha Fin</label>
-                </div>
-                <div class="col-auto">
-                    <input type="date" class="form-control form-control-sm" name="fechaFin" value="<%= (fechaFinStr != null ? fechaFinStr : "") %>">
-                </div>
-                <div class="col-auto">
-                    <label class="form-label mb-0">Estado</label>
-                </div>
+                <div class="col-auto"><label class="form-label mb-0">Fecha Inicio</label></div>
+                <div class="col-auto"><input type="date" class="form-control form-control-sm" name="fechaInicio" value="<%= (fechaInicioStr != null ? fechaInicioStr : "") %>"></div>
+                <div class="col-auto"><label class="form-label mb-0">Fecha Fin</label></div>
+                <div class="col-auto"><input type="date" class="form-control form-control-sm" name="fechaFin" value="<%= (fechaFinStr != null ? fechaFinStr : "") %>"></div>
+                <div class="col-auto"><label class="form-label mb-0">Estado</label></div>
                 <div class="col-auto">
                     <select class="form-select form-select-sm" name="estado" onchange="this.form.submit()">
                         <option value="Pendiente" <%= "Pendiente".equals(estadoFiltro) ? "selected" : "" %>>Pendiente</option>
@@ -184,37 +152,23 @@ df.setDecimalFormatSymbols(new DecimalFormatSymbols(java.util.Locale.US));
                     </select>
                 </div>
                 <div class="col-auto">
-                    <button type="submit" class="btn btn-primary btn-sm">
-                        <i class="fas fa-filter me-1"></i>Filtrar
-                    </button>
+                    <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-filter me-1"></i>Filtrar</button>
                 </div>
                 <div class="col-auto">
-                    <a href="?usuarioId=<%= usuarioIdDetalle %>" class="btn btn-outline-secondary btn-sm px-2">
-                        Limpiar
-                    </a>
+                    <a href="?usuarioId=<%= usuarioIdDetalle %>" class="btn btn-outline-secondary btn-sm px-2">Limpiar</a>
                 </div>
             </form>
 
-            <!-- Botones de acción (fuera del formulario de filtros) -->
             <div class="d-flex flex-wrap gap-2 mb-3 no-print">
-                <button class="btn btn-sm btn-secondary" onclick="window.print()">
-                    <i class="fas fa-print me-1"></i>Imprimir
-                </button>
-                <button class="btn btn-sm btn-success" onclick="exportarAExcel()">
-                    <i class="fas fa-file-excel me-1"></i>Exportar
-                </button>
-                <a href="menu-principal.jsp" class="btn btn-sm btn-outline-secondary">
-                    <i class="fas fa-home me-1"></i>Menú
-                </a>
-                <a href="compras-por-usuario.jsp" class="btn btn-sm btn-outline-primary">
-                    <i class="fas fa-arrow-left me-1"></i>Resumen
-                </a>
+                <button class="btn btn-sm btn-secondary" onclick="window.print()"><i class="fas fa-print me-1"></i>Imprimir</button>
+                <button class="btn btn-sm btn-success" onclick="exportarAExcel()"><i class="fas fa-file-excel me-1"></i>Exportar</button>
+                <a href="menu-principal.jsp" class="btn btn-sm btn-outline-secondary"><i class="fas fa-home me-1"></i>Menú</a>
+                <a href="compras-por-usuario.jsp" class="btn btn-sm btn-outline-primary"><i class="fas fa-arrow-left me-1"></i>Resumen</a>
             </div>
 
-            <!-- Formulario oculto para exportar Excel -->
             <form id="formExportarExcel" method="post" action="ExportarComprasExcelServlet" style="display:none;">
                 <input type="hidden" name="tablaHTML" id="tablaHTML">
-                <input type="hidden" name="nombreUsuario" id="nombreUsuario" value="<%= usuarioDetalle.getNombre() %>">
+                <input type="hidden" name="nombreUsuario" value="<%= usuarioDetalle.getNombre() %>">
             </form>
 
             <% 
@@ -276,18 +230,23 @@ df.setDecimalFormatSymbols(new DecimalFormatSymbols(java.util.Locale.US));
                                                 <input type="hidden" name="fechaInicio" value="<%= (fechaInicioStr != null ? fechaInicioStr : "") %>" />
                                                 <input type="hidden" name="fechaFin" value="<%= (fechaFinStr != null ? fechaFinStr : "") %>" />
                                                 <input type="hidden" name="estado" value="<%= (estadoFiltro != null ? estadoFiltro : "") %>" />
-                                                <button type="submit" class="btn btn-xs btn-success btn-recibido">
-                                                    ✓ Recibido
-                                                </button>
+                                                <button type="submit" class="btn btn-xs btn-success">✓ Recibido</button>
                                             </form>
                                         <% } %>
                                     </td>
                                     <td>
-                                        <% if (c.getRutaFoto() != null && !c.getRutaFoto().trim().isEmpty()) { %>
-                                            <a href="<%= request.getContextPath() + "/" + c.getRutaFoto() %>" target="_blank" class="btn btn-xs btn-outline-primary btn-ver-foto">Ver</a>
-                                        <% } else { %>
+                                        <%
+                                            byte[] imgData = c.getImagen();
+                                            if (imgData != null && imgData.length > 0) {
+                                        %>
+                                            <a href="verImagenCompra?id=<%= c.getId() %>" target="_blank" class="btn btn-xs btn-outline-primary">Ver</a>
+                                        <%
+                                            } else {
+                                        %>
                                             <span class="text-muted">-</span>
-                                        <% } %>
+                                        <%
+                                            }
+                                        %>
                                     </td>
                                     <% if (esAdmin || permisos.getOrDefault("eliminar_compras", false)) { %>
                                         <td>
@@ -297,9 +256,7 @@ df.setDecimalFormatSymbols(new DecimalFormatSymbols(java.util.Locale.US));
                                                 <input type="hidden" name="fechaInicio" value="<%= (fechaInicioStr != null ? fechaInicioStr : "") %>" />
                                                 <input type="hidden" name="fechaFin" value="<%= (fechaFinStr != null ? fechaFinStr : "") %>" />
                                                 <input type="hidden" name="estado" value="<%= (estadoFiltro != null ? estadoFiltro : "") %>" />
-                                                <button type="submit" class="btn btn-xs btn-danger btn-eliminar">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
+                                                <button type="submit" class="btn btn-xs btn-danger"><i class="fas fa-trash"></i></button>
                                             </form>
                                         </td>
                                     <% } %>
@@ -356,4 +313,4 @@ function exportarAExcel() {
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
-</html>                                
+</html>

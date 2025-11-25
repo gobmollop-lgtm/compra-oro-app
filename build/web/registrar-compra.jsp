@@ -1,3 +1,4 @@
+<!-- Nueva actualizacion -->
 <%@ page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ page import="java.util.Map, logica.PermisoServicio, java.util.List, modelo.Cliente, logica.ClienteServicio, modelo.Configuracion, logica.ConfiguracionServicio, modelo.FondoComprador, logica.FondoServicio, java.math.BigDecimal" %>
 <%
@@ -41,6 +42,7 @@ BigDecimal saldoDisponible = fondo != null ? fondo.getSaldoDisponible() : BigDec
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registrar Compra</title>
+    <!-- ✅ Corregido: sin espacios al final -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         .img-preview {
@@ -79,6 +81,7 @@ BigDecimal saldoDisponible = fondo != null ? fondo.getSaldoDisponible() : BigDec
             </div>
             <% } %>
 
+            <!-- ✅ Formulario correcto -->
             <form action="registrar-compra" method="post" enctype="multipart/form-data">
                 <div class="mb-3">
                     <label class="form-label fw-bold">Cliente:</label>
@@ -125,7 +128,6 @@ BigDecimal saldoDisponible = fondo != null ? fondo.getSaldoDisponible() : BigDec
                     </div>
                 </div>
 
-                <!-- Sección de imagen en lugar de observaciones -->
                 <div class="mb-3">
                     <label class="form-label">Foto de la Compra</label>
                     <input type="file" name="fotoCompra" id="fotoCompra" class="form-control" accept="image/jpeg,image/png">
@@ -184,7 +186,6 @@ function calcular() {
     document.getElementById('total').value = simbolo + total.toFixed(2);
 }
 
-// Vista previa de la imagen
 document.getElementById('fotoCompra').addEventListener('change', function(e) {
     const preview = document.getElementById('imgPreview');
     const file = e.target.files[0];
@@ -200,6 +201,7 @@ document.getElementById('fotoCompra').addEventListener('change', function(e) {
     }
 });
 </script>
+<!-- ✅ Corregido: sin espacios al final -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

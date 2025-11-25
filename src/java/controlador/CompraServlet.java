@@ -1,14 +1,8 @@
 package controlador;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.UUID;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
@@ -50,7 +44,7 @@ public class CompraServlet extends HttpServlet {
             Configuracion configuracion = configServicio.obtenerConfiguracion();
             String simboloMoneda = (configuracion != null && configuracion.getMonedaSimbolo() != null) 
                 ? configuracion.getMonedaSimbolo() 
-                : "$";
+                : "C$";
 
             FondoServicio fondoServicio = new FondoServicio();
             BigDecimal saldoDisponible = fondoServicio.obtenerSaldoDisponible(usuarioId);
@@ -62,26 +56,26 @@ public class CompraServlet extends HttpServlet {
                 return;
             }
 
-            String rutaFoto = null;
+            // >>> MODIFICACIÓN MÍNIMA: solo cambiamos cómo se obtiene la imagen <<<
+            byte[] imagenBytes = null;
             Part filePart = request.getPart("fotoCompra");
             if (filePart != null && filePart.getSize() > 0) {
-                String fileName = filePart.getSubmittedFileName();
-                if (fileName != null && !fileName.isEmpty()) {
-                    String ext = fileName.substring(fileName.lastIndexOf(".")).toLowerCase();
-                    if (ext.equals(".jpg") || ext.equals(".jpeg") || ext.equals(".png")) {
-                        String uniqueName = "compra_" + UUID.randomUUID().toString() + ext;
-
-                        // ✅ RUTA FIJA: Carpeta física específica
-                        String savePath = "C:\\Users\\EZEQUIAS\\CompraOroApp\\web\\images\\compras";
-                        File dir = new File(savePath);
-                        if (!dir.exists()) {
-                            dir.mkdirs();
-                        }
-
-                        Path filePath = Paths.get(savePath, uniqueName);
-                        Files.copy(filePart.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-                        rutaFoto = "images/compras/" + uniqueName; // Ruta relativa para la BD
+                String contentType = filePart.getContentType();
+                if (contentType != null && 
+                    (contentType.equals("image/jpeg") || 
+                     contentType.equals("image/jpg") || 
+                     contentType.equals("image/png"))) {
+                    
+                    // Código compatible con Java 8
+                    ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+                    InputStream input = filePart.getInputStream();
+                    byte[] data = new byte[4096];
+                    int nRead;
+                    while ((nRead = input.read(data, 0, data.length)) != -1) {
+                        buffer.write(data, 0, nRead);
                     }
+                    input.close();
+                    imagenBytes = buffer.toByteArray();
                 }
             }
 
@@ -91,10 +85,11 @@ public class CompraServlet extends HttpServlet {
             compra.setPesoGramos(peso);
             compra.setKilate(kilate);
             compra.setPunto(punto);
-            compra.setRutaFoto(rutaFoto);
+            
+            compra.setImagen(imagenBytes);  // ✅ Nueva forma: BLOB
             compra.setPrecioGramo(precioGramo);
             compra.setTotal(total);
-            compra.setEstado("Pendiente"); // Estado por defecto
+            compra.setEstado("Pendiente");
 
             CompraServicio servicio = new CompraServicio();
             servicio.registrar(compra);
@@ -108,5 +103,12 @@ public class CompraServlet extends HttpServlet {
             request.setAttribute("error", "Error al registrar compra: " + e.getMessage());
             request.getRequestDispatcher("registrar-compra.jsp").forward(request, response);
         }
+    }
+
+    // >>> AÑADIDO: evita el error 405 si alguien accede por GET <<<
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        response.sendRedirect("registrar-compra.jsp");
     }
 }
