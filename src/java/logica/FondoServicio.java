@@ -42,6 +42,14 @@ public class FondoServicio {
         fondoDAO.deducirMonto(usuarioId, montoCompra);
     }
 
+    // === NUEVO MÉTODO: Devuelve el monto al fondo al eliminar una compra ===
+    public void devolverMonto(int usuarioId, BigDecimal monto) {
+        if (monto == null || monto.compareTo(BigDecimal.ZERO) <= 0) {
+            return; // Nada que devolver
+        }
+        fondoDAO.devolverMonto(usuarioId, monto);
+    }
+
     public static String formatearMonto(BigDecimal monto) {
         if (monto == null) monto = BigDecimal.ZERO;
         DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US);

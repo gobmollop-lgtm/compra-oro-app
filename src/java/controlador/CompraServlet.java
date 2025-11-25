@@ -26,7 +26,6 @@ import modelo.Configuracion;
                  maxRequestSize = 10 * 1024 * 1024) // 10 MB
 public class CompraServlet extends HttpServlet {
 
-    // Ruta relativa dentro de WebContent
     private static final String UPLOAD_DIR = "images" + File.separator + "compras";
 
     @Override
@@ -34,7 +33,6 @@ public class CompraServlet extends HttpServlet {
             throws ServletException, IOException {
 
         try {
-            // Validar sesión
             HttpSession session = request.getSession();
             Integer usuarioId = (Integer) session.getAttribute("usuarioId");
             if (usuarioId == null) {
@@ -42,17 +40,14 @@ public class CompraServlet extends HttpServlet {
                 return;
             }
 
-            // Parámetros de texto
             int clienteId = Integer.parseInt(request.getParameter("clienteId"));
             BigDecimal peso = new BigDecimal(request.getParameter("peso"));
             BigDecimal kilate = new BigDecimal(request.getParameter("kilate"));
             BigDecimal punto = new BigDecimal(request.getParameter("punto"));
 
-            // Calcular valores
             BigDecimal precioGramo = kilate.multiply(punto).setScale(2, RoundingMode.HALF_UP);
             BigDecimal total = peso.multiply(precioGramo).setScale(2, RoundingMode.HALF_UP);
 
-            // Verificar saldo
             ConfiguracionServicio configServicio = new ConfiguracionServicio();
             Configuracion configuracion = configServicio.obtenerConfiguracion();
             String simboloMoneda = (configuracion != null && configuracion.getMonedaSimbolo() != null) 
@@ -69,46 +64,48 @@ public class CompraServlet extends HttpServlet {
                 return;
             }
 
-            // Procesar archivo (si existe)
             String rutaFoto = null;
             Part filePart = request.getPart("fotoCompra");
             if (filePart != null && filePart.getSize() > 0) {
                 String fileName = filePart.getSubmittedFileName();
                 if (fileName != null && !fileName.isEmpty()) {
-                    // Validar extensión
                     String ext = fileName.substring(fileName.lastIndexOf(".")).toLowerCase();
                     if (ext.equals(".jpg") || ext.equals(".jpeg") || ext.equals(".png")) {
-                        // Generar nombre único
                         String uniqueName = "compra_" + UUID.randomUUID().toString() + ext;
-                        // Ruta absoluta del servidor
+
+                        // ✅ Usar getRealPath() con verificación
                         String appPath = request.getServletContext().getRealPath("");
-                        String savePath = appPath + File.separator + UPLOAD_DIR;
+                        if (appPath == null) {
+                            // Fallback: usar la carpeta temporal del sistema
+                            appPath = System.getProperty("java.io.tmpdir");
+                        }
+                        String savePath = appPath + File.separator + "images" + File.separator + "compras";
                         File dir = new File(savePath);
                         if (!dir.exists()) dir.mkdirs();
 
-                        // Guardar archivo
                         Path filePath = Paths.get(savePath, uniqueName);
                         Files.copy(filePart.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-                        rutaFoto = UPLOAD_DIR + "/" + uniqueName;
+                        rutaFoto = "images/compras/" + uniqueName;
                     }
                 }
             }
 
-            // Registrar compra
-            Compra compra = new Compra();
-            compra.setClienteId(clienteId);
-            compra.setUsuarioId(usuarioId);
-            compra.setPesoGramos(peso);
-            compra.setKilate(kilate);
-            compra.setPunto(punto);
-            compra.setRutaFoto(rutaFoto); // <<<< GUARDAR LA RUTA
-            compra.setPrecioGramo(precioGramo);
-            compra.setTotal(total);
+Compra compra = new Compra();
+compra.setClienteId(clienteId);
+compra.setUsuarioId(usuarioId);
+compra.setPesoGramos(peso);
+compra.setKilate(kilate);
+compra.setPunto(punto);
+compra.setRutaFoto(rutaFoto);
+compra.setPrecioGramo(precioGramo);
+compra.setTotal(total);
+// >>> AÑADIR ESTA LÍNEA <<<
+compra.setEstado("Pendiente"); // Estado por defecto
 
-            CompraServicio servicio = new CompraServicio();
-            servicio.registrar(compra);
+CompraServicio servicio = new CompraServicio();
+servicio.registrar(compra);
+        
 
-            // Deducir monto del fondo
             fondoServicio.deducirMonto(usuarioId, total);
 
             response.sendRedirect("lista-compras.jsp?exito=1");
@@ -119,4 +116,5 @@ public class CompraServlet extends HttpServlet {
             request.getRequestDispatcher("registrar-compra.jsp").forward(request, response);
         }
     }
+    
 }

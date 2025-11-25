@@ -15,13 +15,28 @@ public class CompraServicio {
     public List<Compra> obtenerUltimas(int limite) {
         return compraDAO.listarUltimas(limite);
     }
-    // En logica/CompraServicio.java
-public CompraResumen obtenerResumenPorUsuario(int usuarioId) {
-    return compraDAO.obtenerResumenPorUsuario(usuarioId);
-}
-    
+
+    public CompraResumen obtenerResumenPorUsuario(int usuarioId) {
+        return compraDAO.obtenerResumenPorUsuario(usuarioId);
+    }
+
+    public List<Compra> obtenerPorUsuario(int usuarioId) {
+        return compraDAO.obtenerPorUsuario(usuarioId);
+    }
+
+    // NUEVOS MÉTODOS
+    public Compra obtenerPorId(int id) {
+        return compraDAO.obtenerPorId(id);
+    }
+
+    public void eliminar(int id) {
+        compraDAO.eliminar(id);
+    }
+
+ 
 // En logica/CompraServicio.java
-public List<Compra> obtenerPorUsuario(int usuarioId) {
-    return compraDAO.obtenerPorUsuario(usuarioId);
+public void actualizarEstado(int compraId, String estado) {
+    compraDAO.actualizarEstado(compraId, estado);
 }
+
 }

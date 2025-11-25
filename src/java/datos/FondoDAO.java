@@ -64,4 +64,21 @@ public class FondoDAO {
             e.printStackTrace();
         }
     }
+
+    // === NUEVO MÉTODO: Devuelve el monto al fondo (reduce monto_usado) ===
+    public void devolverMonto(int usuarioId, BigDecimal monto) {
+        if (monto == null || monto.compareTo(BigDecimal.ZERO) <= 0) {
+            return; // Nada que devolver
+        }
+        String sql = "UPDATE fondos_comprador SET monto_usado = GREATEST(0, monto_usado - ?) WHERE usuario_id = ?";
+        try (Connection con = ConexionDB.obtenerConexion();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setBigDecimal(1, monto);
+            ps.setInt(2, usuarioId);
+            ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Error al devolver monto al fondo", e);
+        }
+    }
 }
